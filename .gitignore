@@ -1,1 +1,4 @@
 vendor/
+tmp/
+output/
+crash.log
