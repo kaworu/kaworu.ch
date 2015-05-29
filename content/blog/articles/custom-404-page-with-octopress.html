@@ -1,0 +1,158 @@
+---
+kind: article
+navbar: Blog
+title: "custom 404 page with octopress"
+created_at: 2013-05-25 19:32
+comments: true
+tags: [Octopress]
+---
+
+<div class="clearfix">
+    <img class="no-border left" src="<%= static_url '/images/octopress.png' %>" alt="Octopress">
+    <p>
+        I'm still new to <span class="brand">Octopress</span> and so far I'm
+        quite happy with it. While it always feel like a trade (between power
+        and simplicity), the choice between
+        <span class="brand">HAML</span> or <span class="brand">Markdown</span>
+        is really nice.
+    <p>
+        Anyway one of the thing I wanted to hack was a nice custom 404 page.  I
+        found a lot of info on the web but no complete walkthrough, so I
+        decided to write a quick post about it.
+</div>
+
+<!-- more -->
+
+<h2>Creating the page</h2>
+
+<p>
+    First of all, we need to create a new page. Mine is located in
+    <span class="path">source/error/404-not-found.html</span> But there isn't
+    much restrictions.
+
+```{"language":"html","title":"source/error/404-not-found.html"}
+---
+title: "404 Page Not Found"
+comments: false
+sharing: false
+footer: false
+---
+
+<p style="text-align:right;font-family:Courrier,monospace;">
+  404_page_not_found();
+  {% img center /images/404-not-found.scaled.jpg ENOENT %}
+</p>
+
+<style type="text/css">
+  /* avoid to display the page's title, it kinda give it all away */
+  [role=article] > header {
+      display: none;
+  }
+</style>
+```
+<p class="codeblock-comment text-muted">
+    By the way I struggled to have the <span class="brand">Liquid</span> tag
+    inserted correctly (i.e. not interpreted) into this codeblock until I found
+    <a href="http://jimpravetz.com/blog/2011/12/inserting-liquid-syntax-into-octopress-codeblock/">
+        Jim's post about the workaround
+    </a>. Kudo to him ♥
+
+<p>
+    Of course you can customize it even more with a dedicated layout for errors
+    pages, use <span class="brand">HAML</span>,
+    <span class="brand">Markdown</span> etc.
+
+<h2>hide it!</h2>
+
+<p>
+    Let's face the ugly truth: it is not a very exciting page.
+
+<p>
+    We don't want robots to crawl our 404 page. The following
+    <span class="filename">robot.txt</span> will Disallow the whole
+    <span class="path">/error</span> directory (where, if needed, we could add
+    more pages for other types of errors like 403, 418 etc.).
+
+```{"title":"source/robot.txt"}
+---
+---
+User-agent: *
+Disallow: /error/
+
+Sitemap: {{ site.url }}/sitemap.xml 
+```
+
+<p>
+    Then, we need to hack into
+    <span class="path">plugins/sitemap_generator.rb</span> in order to avoid
+    our page to be visible in the site's
+    <span class="filename">sitemap.xml</span>. Find the
+    <code>EXCLUDED_FILE</code> array and add the filename (not the path) to it.
+    As an exemple, here is mine:
+
+```{"title":"plugins/sitemap_generator.rb","language":"ruby"}
+# ...
+
+module Jekyll
+
+  # Change SITEMAP_FILE_NAME if you would like your sitemap file
+  # to be called something else
+  SITEMAP_FILE_NAME = "sitemap.xml"
+
+  # Any files to exclude from being included in the sitemap.xml
+  EXCLUDED_FILES = ["atom.xml", "404-not-found.html"]
+
+  # Any files that include posts, so that when a new post is added, the last
+  # modified date of these pages should take that into account
+  PAGES_INCLUDE_POSTS = ["index.html"]
+
+# ...
+```
+<p class="codeblock-comment text-muted">
+    I know, it feel hacky. tecnobrat made a pull request to
+    <span class="brand">Octopress</span> with a nice patch to handle this in a
+    cleaner way, but it has been
+    <a href="https://github.com/imathis/octopress/pull/511">closed without explanation</a>.
+
+<h2>Webserver configuration</h2>
+
+<p>
+    Last but not least, we need to tell the webserver that we can handle 404
+    errors like a man. Here is how to do it with
+    <span class="brand">nginx</span>:
+
+```{"title":"nginx.conf","language":"nginx"}
+server {
+    server_name kaworu.ch www.kaworu.ch;
+    # [...]
+    error_page 404 /error/404-not-found.html;      # preserve the 404 status code
+    #error_page 404 = /error/404-not-found.html;    # reset the status code
+    #error_page 404 =418 /error/404-not-found.html; # set the status code to 418
+    # [...]
+}
+```
+
+<p>
+    I believe keeping the 404 status code is the good choice here. If you're
+    using Apache you're on your own
+    <small class="text-muted">(but someone is whispering *.htaccess*)</small>.
+
+<p>
+    Now reload your server's configuration and test it:
+
+```{"linenos":false}
+% curl -I https://kaworu.ch/this-does-not-exist-hahaha
+HTTP/1.1 404 Not Found
+Server: nginx/1.4.1
+Date: Wed, 15 May 2013 18:18:33 GMT
+Content-Type: text/html; charset=UTF-8
+Content-Length: 3325
+Connection: keep-alive
+Vary: Accept-Encoding
+ETag: "518fd711-cfd"
+```
+
+<p>
+    Alright! A quick test with your browser to ensure that the awesome page we
+    created at step one is displayed and it's all done. Now all you might need
+    is a little bit of <a href="http://404notfound.fr/">inspiration</a>.

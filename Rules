@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-
 # A few helpful tips about the Rules file:
 #
 # * The string given to #compile and #route are matching patterns for
@@ -13,28 +12,149 @@
 #   item, use the pattern “/about/*/”; “/about/*” will also select the parent,
 #   because “*” matches zero or more characters.
 
-compile '*' do
-  if item[:extension] == 'css'
-    # don’t filter stylesheets
-  elsif item.binary?
-    # don’t filter binary items
-  else
-    filter :erb
-    layout 'default'
+require 'time'
+require 'compass'
+
+Compass.add_project_configuration 'compass_config.rb'
+
+preprocess do
+ # setup the previous/next links
+  def setup_previous_next_nav items
+    first, last = 0, (items.length - 1)
+    items.each_with_index do |item, i|
+      item[:previous] = items[i - 1] if i > first
+      item[:next]     = items[i + 1] if i < last
+    end
   end
+
+  # setup some items for tags pages
+  def generate_tag_pages_items
+    # build something like {'tagname' => [article1, article0], ...}
+    sorted_articles.inject Hash.new do |tags, article|
+      (article[:tags] || Array.new).each do |tag|
+        (tags[tag] ||= Array.new) << article
+      end
+      tags
+    end.each do |tag, articles|
+      @items << Nanoc::Item.new(
+        "<%= render '_blog_archives', articles: @item[:articles] %>",
+        {
+          navbar: 'Archives',
+          title: "Tag: #{tag}",
+          kind: 'tag-archive',
+          tag: tag,
+          articles: articles,
+        },
+        "/blog/tags/#{tag}/"
+      )
+    end
+  end
+
+  # inspired by http://nanoc.ws/docs/guides/paginating-articles/
+  def generate_blog_pages_items
+    slices = sorted_articles.each_slice(@config[:paginate])
+    slices.each_with_index.inject Array.new do |result, each|
+      subarticles, i = each
+      @items << Nanoc::Item.new(
+        "<%= render '_blog_page', articles: @item[:articles] %>",
+        {
+          navbar: 'Blog',
+          kind: 'blog-page',
+          no_page_header: true,
+          articles: subarticles,
+        },
+        if i.zero? then "/" else "/blog/page/#{i + 1}/" end
+      )
+    end
+  end
+
+  generate_tag_pages_items
+  generate_blog_pages_items
+  setup_previous_next_nav sorted_articles
+  setup_previous_next_nav blog_pages.reverse
+end
+
+# favicon
+passthrough '/favicon/'
+
+# some exceptional files
+%w[/sitemap/ /robots/ /humans/ /atom/].each do |f|
+    compile f do
+        filter :erb
+    end
+end
+
+# static stuff
+compile '/static/*/' do
+    # nada
+end
+route '/static/*/' do # /static/foo.html/ → /foo.html
+    item.identifier.to_s[7..-2]
+end
+
+# stylesheets
+ignore '/style/_*' # partials
+compile '/style/screen/' do
+    filter :sass, Compass.sass_engine_options
+    filter :relativize_paths, :type => :css
+end
+route '/style/*/' do
+    "#{item.identifier.chop}.css"
+end
+
+# blog
+compile '/blog/articles/*' do
+  if item[:extension] =~ /^md|mkd|markdown$/
+    filter :kramdown
+  elsif item[:extension] == 'haml'
+    filter :haml
+  else # default filter
+    filter :erb
+  end
+  filter :octohl
+  layout 'article'
+  layout 'page'
+  layout 'default'
+end
+route '/blog/articles/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html
+    t = attribute_to_time item[:created_at]
+    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier}/index.html"
+end
+
+# default Rules from here.
+
+compile '*' do
+    if item[:extension] == 'css'
+        # don’t filter stylesheets
+    elsif item.binary?
+        # don’t filter binary items
+    else
+      #if item[:extension] =~ /^md|mkd|markdown$/
+      #  filter :kramdown
+      #elsif item[:extension] == 'haml'
+      #  filter :haml
+      #else # default filter
+        filter :erb
+      #end
+      filter :octohl
+      layout 'page'
+      layout 'default'
+    end
 end
 
 route '*' do
-  if item[:extension] == 'css'
-    # Write item with identifier /foo/ to /foo.css
-    item.identifier.chop + '.css'
-  elsif item.binary?
-    # Write item with identifier /foo/ to /foo.ext
-    item.identifier.chop + (item[:extension] ? '.' + item[:extension] : '')
-  else
-    # Write item with identifier /foo/ to /foo/index.html
-    item.identifier + 'index.html'
-  end
+    if item[:extension] == 'css'
+        # Write item with identifier /foo/ to /foo.css
+        item.identifier.chop + '.css'
+    elsif item.binary?
+        # Write item with identifier /foo/ to /foo.ext
+        item.identifier.chop + (item[:extension] ? '.' + item[:extension] : '')
+    elsif item[:path]
+        item[:path]
+    else
+        # Write item with identifier /foo/ to /foo/index.html
+        item.identifier + 'index.html'
+    end
 end
 
 layout '*', :erb

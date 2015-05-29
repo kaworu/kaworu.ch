@@ -1,0 +1,5 @@
+---
+path: "/atom.xml"
+is_hidden: true
+---
+<%= atom_feed %>

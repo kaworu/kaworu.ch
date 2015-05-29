@@ -1,0 +1,50 @@
+---
+kind: article
+navbar: Blog
+title: "running php-fpm inside a FreeBSD jail"
+created_at: 2015-05-08 14:01:48 +0200
+comments: true
+tags: [sysadmin, FreeBSD]
+---
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/freebsd-logo.png' %>" alt="FreeBSD Logo">
+    <p>
+        I had an issue while trying to run a php-fpm FastCGI process from a
+        FreeBSD jail using <span class="brand">nginx</span> from the host. Like
+        many others I experienced the infamous White Screen Of Death™  but no
+        errors were logged at all (even with the full debug config all set from
+        both <span class="filename">php-fpm.conf</span> and
+        <span class="filename">php.ini</span>).
+</div>
+
+```{"title":"nginx.conf","language":"nginx"}
+# ...
+upstream princesse-bulldozer-php-fpm {
+    server [2a01:4f8:120:5388:0:b:249:1]:9000;
+} server {
+    listen   *:80;
+    listen   [::]:80;
+    # ...
+    root /usr/jails/jail0.kaworu.ch/home/princesse-bulldozer.ch/wordpress;
+    index index.php;
+    # Pass all .php files onto a php-fpm/php-fcgi server.
+    location ~ [^/]\.php(/|$) {
+        fastcgi_index index.php;
+
+        fastcgi_pass princesse-bulldozer-php-fpm;
+        # fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME /home/princesse-bulldozer.ch/wordpress$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+```
+
+<p>
+    As <span class="brand">nginx</span> is run from the host, using the "full"
+    path as <code>root</code> (line 8) is correct. But since php-fpm is jailed,
+    the <code>SCRIPT_FILENAME</code> path should not use
+    <code>$document_root</code> (see line 15 which does not work). It has to be
+    set to the "jailed" path (line 16). Hope it can avoid a couple of painful
+    debugging out there :)
+

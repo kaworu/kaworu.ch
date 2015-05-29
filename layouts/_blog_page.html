@@ -1,0 +1,40 @@
+<!-- partial _blog_page -->
+<div id="blog-index">
+    <% for article in @articles %>
+        <article class="post">
+            <% unless article[:no_header] %>
+                <header class="page-header">
+                    <% if article[:created_at] %>
+                        <p class="meta text-muted text-uppercase">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                            <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
+                        </p>
+                    <% end %>
+                    <% if article[:title] %>
+                        <h2 class="entry-title">
+                            <a href="<%= article.path %>"><%= article[:title] %></a>
+                        </h2>
+                    <% end %>
+                </header>
+            <% end %>
+            <div class="entry-content clearfix">
+                <%= excerptize article.compiled_content %>
+            </div>
+            <% if has_excerpt(article.compiled_content) %>
+                <footer>
+                    <a class="read-more btn btn-default pull-right" href="<%= article.path %>"><%= @config[:excerpt_link] %></a>
+                </footer>
+            <% end %>
+        </article>
+    <% end %>
+</div>
+
+<ul class="pager">
+    <li class="previous <%= 'disabled' unless @item[:previous] %>">
+        <a href="<%= @item[:previous] ? @item[:previous].path : '#' %>">←&nbsp;Older</a>
+    <li>
+        <a href="#wrap">&#8593;&nbsp;back to top</a>
+    <li class="next <%= 'disabled' unless @item[:next] %>">
+        <a href="<%= @item[:next] ? @item[:next].path : '#' %>">Newer&nbsp;→</a>
+</ul>
+<!-- /partial _blog_page -->

@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# update (pull) some Git repos in a given directory.
+#
+# config example:
+# daily_git_pull_enable="YES"
+# daily_git_pull_user="alex"
+# daily_git_pull_dir="/home/alex/github"
+
+# If there is a global system configuration file, suck it in.
+#
+if [ -r /etc/defaults/periodic.conf ]
+then
+    . /etc/defaults/periodic.conf
+    source_periodic_confs
+fi
+
+case "$daily_git_pull_enable" in
+    [Yy][Ee][Ss])
+        echo
+        echo 'Git pull:'
+
+        if [ ! -d "${daily_git_pull_dir}" ]; then
+            echo "${daily_git_pull_dir}: not a directory"
+            rc=2
+        else
+            rc=1
+            for dir in "${daily_git_pull_dir}"/*; do
+                if [ -d "${dir}/.git" ]; then
+                    command="git -C ${dir} pull --all"
+                    echo "$command"
+                    su -l ${daily_git_pull_user} -c "$command" || rc=3
+                fi
+            done
+        fi;;
+
+    *)  rc=0;;
+esac
+
+exit $rc

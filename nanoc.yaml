@@ -22,7 +22,7 @@ enable_output_diff: false
 prune:
   # Whether to automatically remove files not managed by nanoc from the output
   # directory. For safety reasons, this is turned off by default.
-  auto_prune: false
+  auto_prune: true
 
   # Which files and directories you want to exclude from pruning. If you version
   # your output directory, you should probably exclude VCS directories such as
@@ -61,6 +61,8 @@ data_sources:
     # The encoding to use for input files. If your input files are not in
     # UTF-8 (which they should be!), change this.
     encoding: utf-8
+  - type:         static
+    items_root:   /static/
 
 # Configuration for the “check” command, which run unit tests on the site.
 checks:
@@ -72,3 +74,33 @@ checks:
     # E.g.:
     #   exclude: ['^/server_status']
     exclude: []
+
+base_url: https://kaworu.ch
+
+# our stuff.
+title: There is no spoon.
+subtitle: ENOSPOON
+description: kAworu's slice of web.
+
+# author
+author_name: kAworu
+author_uri: https://kaworu.ch/about
+
+# You can customize the format as defined in http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
+date_format: "%a %e %b %Y, %l:%M %p"
+# Posts per page on the blog index
+paginate: 6
+# "Continue reading" link text at the bottom of excerpted articles
+excerpt_link: "Read on &rarr;"
+excerpt_separator: "<!-- more -->"
+
+# RSS
+subscribe_rss: true
+# search
+simple_search: https://www.google.com/search
+# Google Analytics
+google_analytics_tracking_id: UA-40868430-1
+# Disqus Comments
+disqus_short_name: forkwhilefork
+# GitHub
+github_user: kAworu

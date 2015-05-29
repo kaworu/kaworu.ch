@@ -1,0 +1,41 @@
+<!-- partial _blog_archives -->
+<div id="blog-archives">
+    <% year = nil %>
+    <% for article in sorted_articles %>
+        <% if year != attribute_to_time(article[:created_at]).year %>
+            <% year = attribute_to_time(article[:created_at]).year %>
+            <h2 class="year"><%= year %></h2>
+        <% end %>
+        <article class="page-header">
+            <h2 class="post-title">
+              <a href="<%= canonical_url article %>"><%= h article[:title] %></a>
+            </h2>
+            <p class="meta text-muted">
+              <!-- author -->
+              <span class="glyphicon glyphicon-user"></span>
+              <span class="byline author vcard">Posted by <span class="fn"><%= item_author article %></span></span>
+              <!-- dates -->
+              <span class="glyphicon glyphicon-calendar"></span>
+              <% if article[:updated_at] %>
+              <time datetime="<%= attribute_to_time(article[:updated_at]).xmlschema %>" class="updated">
+                  Updated <%= attribute_to_time(article[:updated_at]).strftime(@config[:date_format]) %>
+              </time>
+              <% else %>
+              <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" <% if article[:updated_at] %>data-updated="true"<% end %>>
+                  <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
+              </time>
+              <% end %>
+              <% if article[:tags] and not article[:tags].length.zero? %>
+              <!-- tags -->
+              <span class="glyphicon glyphicon-tags"></span> 
+              <span class="tags">
+              <% for tag in article[:tags] do %>
+                  <a class="tag label label-primary" href="#"><%= h tag %></a>
+              <% end %>
+              </span>
+              <% end %>
+          </p>
+        </article>
+    <% end %>
+</div>
+<!-- /partial _blog_archives -->

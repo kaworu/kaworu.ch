@@ -1,0 +1,196 @@
+---
+kind: article
+navbar: Blog
+title: "easy as the C"
+created_at: 2013-12-07 18:29
+updated_at: 2013-12-09 13:33
+comments: true
+tags: [programming, C]
+---
+
+<div class="clearfix">
+    <img class="left" src="<%= static_url '/images/The_C_Programming_Language_First_Edition_Cover.png' %>" alt="K&amp;R">
+
+    <p>
+        C was not my first programming language. At some point I figured that
+        there is <em>a lot</em> of Open Source software written in C out there,
+        and contributing would require to learn it.
+
+    <p>
+        Recently I've discovered <a href="http://joequery.me/">JoeQuery's blog</a>
+        which has a nice
+        <a href="http://joequery.me/series/learning-c/">learning C series</a>
+        (amongst other really cool stuff).  It inspired me to write a post
+        about C.
+
+    <p>
+        If you are new to C you'll read a lot about dangerous macros, arrays
+        and pointers, how you should handle dynamic memory allocation etc. All
+        theses points are very important, but here is an attempt to sum up more
+        general concepts that you are less likely to find in most C tutorials.
+        If anything,
+        <em>it's a good summary of what I would have liked to read when learning C</em>
+        (maybe I did but forgot — there are some things you only learn by
+        shooting yourself in the foot).
+</div>
+
+<!-- more -->
+
+<h2>C is *very* different from C++</h2>
+
+<p>
+      C++ differ from C in a vicious way. Someday, you might cross the path of
+      some C++ code that will <em>really</em> looks like C.
+      <em>Do not try to transpose what you learn in C to C++</em> (even though
+      you see <code>struct</code> or <code>enum</code>).  You'll do better if
+      you think of them as two unrelated separate languages, because that's
+      what they really are today. I guess the opposite is also true, watch out
+      if you're learning C coming from C++.
+
+```{"language":"c","linenos":false}
+/*
+ * - In C++, this declare a function that take no argument.
+ * - In C, this declare a function that can take an arbitrary number of
+ *   arguments (in an old fashion way).
+ */
+void	do_something();
+```
+
+<h2>There are many of them</h2>
+
+<p>
+    You'll read a lot about "the C programming language". Truth is there are a
+    lot of different kind of C and even more C environments (platform).
+    <em>Knowing your C standard (or variation) and your environment is a real
+        plus when searching for accurate documentation and help</em>.
+    To get which standards are known to your compiler, check its manual about
+    the <code>-std=</code> option. If you feel lost the
+    <a href="https://en.wikipedia.org/wiki/C_(programming_language)"> Wikipedia page about C</a>
+    is a good start. About your environment it's your OS (and when it's
+    something else it will be obvious).
+
+```{"language":"c","linenos":false,"title":"Some good old K&R C brought to you by Perl v1.0.1.3 (!)"}
+main(argc,argv,env)
+register int argc;
+register char **argv;
+register char **env;
+{
+    register STR *str;
+    register char *s;
+    char *index();
+
+    /* ... */
+```
+
+<p>
+      On a non-technical level, C has also many different communities with
+      different cultures. Keep it in mind while contributing to other projects;
+      it is always welcome to check the habits, guidelines and preferred style
+      beforehand.
+
+<h2>C has no namespaces</h2>
+
+<p>
+      There is no built-in support of namespaces in C, but instead a long
+      tradition of prefixing. It is important to note that
+      <em>prefixing with <code>_</code> or <code>__</code> is reserved for the
+          implementation of the system</em>
+      (the compiler and C environment) .  You'll read (maybe use) stuff
+      belonging in these "reserved namespaces" and that's OK, but avoid them
+      for your own variables, macro and functions. 
+
+<h2>Try clang for development</h2>
+
+<p>
+      <a href="http://clang.llvm.org/">clang</a> is, like
+      <span class="brand">GCC</span>, a C compiler (though both can compile
+      other languages too). When <span class="brand">clang</span> started to
+      become a serious alternative to <span class="brand">GCC</span>,
+      <a href="http://clang.llvm.org/diagnostics.html">Expressive Diagnostics</a>
+      was a very attractive feature. Back then understanding
+      <span class="brand">GCC</span> diagnostics was a very painful
+      remember-by-heart-what-kind-of-error-that-cryptic-message-could-report
+      process.  For example,
+      <code>error: expected '=', ',', ';', 'asm' or '__attribute__' before 'foo'</code>
+      was usually related to an unknown type (you could have mistyped
+      <code>int</code> or forgot to include a header).  While
+      <span class="brand">GCC</span> has since improved, I still do prefer
+      <span class="brand">clang</span>'s default warning flags and diagnostics.
+      This is really about personal taste though, so my advice is to
+      <em>play a bit with both <span class="brand">GCC</span> and <span class="brand">clang</span> to make your own mind</em>.
+
+<%= include_code 'c/hello.c', title: "A very simple and common example", language: "c" %>
+
+```{"linenos":false}
+% gcc hello.c
+hello.c: In function 'main':
+hello c:8:2: error: expected ';' before 'return'
+  return (0);
+  ^
+```
+
+```{"linenos":false}
+% clang hello.c
+<strong>hello.c:7:26: <span style="color:red !important">error</span>: expected ';' after expression</strong>
+        printf("Hello World!\n")
+                                <strong><span style="color:green !important">^</span></strong>
+                                <span style="color:green !important">;</span>
+1 error generated.
+```
+
+<h2>UB</h2>
+
+<p>
+    C is notorious for
+    "<a href="https://en.wikipedia.org/wiki/Undefined_behavior">Undefined behavior</a>".
+    For example, if you divide by zero most "high level language" will throw an
+    exception or the program will abort somehow. In C you'll get an UB, meaning
+    it's impossible to know what will happen.
+
+<p>
+    UB are tricky. If you are <del>unlucky</del> lucky, the program will
+    continue to run with a potentially corrupted memory / stack, and debugging
+    will be like wandering through a dungeon without a light torch where it's
+    pitch black and you're likely to be eaten by a
+    <a href="https://en.wikipedia.org/wiki/Grue_(monster)">grue</a>.
+
+<p>
+    <small class="text-muted">
+        As it has been correctly pointed out to me, having UB allows compiler a
+        whole class of optimisations. The LLVM blog posts series
+        <a href="http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html">What Every C Programmer Should Know About Undefined Behavior</a>
+        explains it in details with simple examples. Thanks to
+        <a href="http://grim7reaper.rolinh.ch/">grim7reaper</a> for both the info
+        and LLVM blog's reference !
+    </small>
+
+<p>
+    <em>Rigorously checking pointers and returned values for errors along with
+        using tools like gdb, <a href="http://valgrind.org/">Valgrind</a> and
+        <a href="http://clang-analyzer.llvm.org/scan-build.html">scan-build</a>
+        will save you a lot of debugging time</em>.
+
+
+<h2>premature optimization is the root of all evil</h2>
+
+<blockquote>
+    <p>
+        Programmers waste enormous amounts of time thinking about, or worrying
+        about, the speed of noncritical parts of their programs, and these
+        attempts at efficiency actually have a em negative impact when
+        debugging and maintenance are considered. We should forget about small
+        efficiencies, say about 97% of the time: premature optimization is the
+        root of all evil. Yet we should not pass up our opportunities in that
+        critical 3%.
+    </p>
+    <footer>Donald Knuth</footer>
+</blockquote>
+
+<p>
+    This is especially true with low level languages like C where you get to manage
+    memory yourself. <em>Keep it simple and stupid because most of the time n is small</em>.
+
+<h2>That's it!</h2>
+
+<p>
+    Feel free to add your advices and tips about C in the comments section :)

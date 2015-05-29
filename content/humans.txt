@@ -1,0 +1,17 @@
+---
+path: "/humans.txt"
+is_hidden: true
+---
+/* TEAM */
+
+Developper & Author: Alexandre PERRIN
+E-Mail: alex at kaworu dot ch
+Website: <%= config[:base_url] %>
+GitHub: https://github.com/kAworu
+Location: Switzerland
+
+/* SITE */
+
+Language: English
+Doctype: HTML5
+Software: ViM, Nanoc

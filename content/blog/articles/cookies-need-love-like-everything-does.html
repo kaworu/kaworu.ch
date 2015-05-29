@@ -1,0 +1,62 @@
+---
+kind: article
+navbar: Blog
+title: "Cookies need love like everything does"
+created_at: 2013-11-17 18:22
+comments: true
+---
+
+<img class="left no-border" src="<%= static_url '/images/cookie-jar.jpg' %>" alt="Cookie Jar">
+
+<p>
+    Programming is a lot about <em>reading</em>. You get to read documentation,
+    tutorials, books and of course code. Since I started programming I've been
+    eager to read and my bookshelf has now dozen of geeky books (programming
+    books tends to be quite large).
+
+<p>
+    While crawling in the documentation and books I found gems that I kept
+    preciously in a dusty <span class="filename">.quote</span> file in my home
+    folder (I guess everyone has that kind of file). When I find a good quote,
+    I put it there.
+
+<!-- more -->
+
+<p>
+  Recently, I started to read
+  <a href="http://www.catb.org/esr/writings/taoup/">The Art of Unix Programming</a>
+  which contains <em>a lot</em> of awesome quotes. I had to share the love, so
+  I converted my quote compilation into a <span class="manpage">fortune(1)</span>
+  file available <a href="https://github.com/kAworu/dotfiles/blob/master/.local/share/games/fortune/kaworu">here</a>.
+
+<h2>Setup</h2>
+
+<p>
+  For Ubuntu / Debian you'll need to install the <code>fortune-mod</code> package.
+
+<p>
+  In order to be usable by the <code>fortune(1)</code> utility, you need to
+  produce an index file. This can be done with the
+  <span class="manpage">strfile(1)</span> tool. In this example, my fortune
+  file is <span class="path">~/.local/share/games/fortune/kaworu</span>.
+</p>
+
+```{"linenos":false}
+% strfile ~/.local/share/games/fortune/kaworu
+"/home/alex/.local/share/games/fortune/kaworu.dat" created
+There were 18 strings
+Longest string: 815 bytes
+Shortest string: 86 bytes
+```
+
+Now to display a quote:
+
+```{"linenos":false}
+% fortune ~/.local/share/games/fortune
+Nothing travels faster than the speed of light with the possible exception of
+bad news, which obeys its own special laws.
+                -- The Hitchhiker's Guide to the Galaxy
+```
+
+<p>
+    Feel free to comment with your favourite quote(s), and enjoy :)

@@ -1,0 +1,8 @@
+---
+path: "/robots.txt"
+is_hidden: true
+---
+User-agent: *
+Disallow: 
+
+Sitemap: <%= canonical_url @items['/sitemap/'] %>

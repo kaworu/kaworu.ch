@@ -1,0 +1,88 @@
+---
+kind: article
+navbar: Blog
+title: "Categories page with octopress"
+created_at: 2013-09-23 20:21
+updated_at: 2013-11-04 19:20:30
+comments: true
+categories: [Octopress]
+---
+
+<div class="clearfix">
+    <img class="no-border left" src="<%= static_url '/images/octopress.png' %>" alt="Octopress">
+    <p>
+        One thing I really missed with <span class="brand">Octopress</span> was
+        a category list page. While it generate a page for each category there
+        is no way to list all categories by default.
+    <p>
+        The good news is that it's really easy to create one.  There are
+        already plugin ready-to-be-hacked on the net, and I'll explain in this
+        post how I did it.
+</div>
+
+<!-- more -->
+
+<h2>The Plugin</h2>
+
+<p>
+    I've based my category list page on
+    <a href="http://www.dotnetguy.co.uk/post/2012/06/25/octopress-category-list-plugin/">
+        Dan Watson's plugin
+    </a>. In his blog post, you'll find instructions if you want a category
+    list in your sidebar.
+
+<p>
+    Copy the <code>CategoryListTag</code> module in
+    <span class="path">plugins/category_list_tag.rb</span>. Here is a copy of
+    Dan's code:
+
+```{"title":"plugins/category_list_tag.rb","language":"ruby"}
+module Jekyll
+  class CategoryListTag < Liquid::Tag
+    def render(context)
+      html = ""
+      categories = context.registers[:site].categories.keys
+      categories.sort.each do |category|
+        posts_in_category = context.registers[:site].categories[category].size
+        category_dir = context.registers[:site].config['category_dir']
+        category_url = File.join(category_dir, category.gsub(/_|\P{Word}/, '-').gsub(/-{2,}/, '-').downcase)
+        html << "<li class='category'><a href='/#{category_url}/'>#{category} (#{posts_in_category})</a></li>\n"
+      end
+      html
+    end
+  end
+end
+
+Liquid::Template.register_tag('category_list', Jekyll::CategoryListTag)
+```
+
+<h2>The Page</h2>
+
+<p>
+    Alright! Now all we have to do is create a page (mine is in
+    <span class="path">source/blog/categories/index.html</span>), give it the
+    <code>category_list</code> liquid tag and voilà! Here is a quick example:
+
+```{"title":"source/blog/categories/index.html","language":"html"}
+---
+title: "Blog Categories"
+comments: false
+footer: true
+---
+
+<div id="blog-categories">
+  <ul>
+    {% raw %}{% category_list %}{% endraw %}
+  </ul>
+</div>
+```
+
+<h2>The Hack</h2>
+
+<p>
+    You can now hack the plugin's code and/or your new page. I did some
+    modifications to make the categories list page looks like the archives (and
+    even added a Tag Cloud). In case you're interested you can get the full
+    patch
+    <a href="<%= static_url '/code/octopress-categories-list-page.patch' %>">here</a>
+    (don't expect it to apply smoothly though, it is meant to be adapted).

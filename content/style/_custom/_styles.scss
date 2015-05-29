@@ -1,0 +1,66 @@
+/* nice sticky footer, from http://getbootstrap.com/examples/sticky-footer/ */
+html, body {
+    height: 100%;
+    /* The html and body elements cannot have any padding or margin. */
+}
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by its height */
+  margin: 0 auto -60px;
+  /* Pad bottom by footer height */
+  padding: 0 0 60px;
+}
+
+/* Set the fixed height of the footer here */
+footer[role=contentinfo] {
+    height: 60px;
+}
+
+/* small border for subtitles in post and pages */
+.entry-content h2 {
+    border-bottom: 1px solid #eee;
+}
+
+/* spoon ! */
+header[role=banner] h1 {
+    margin-top: 0;
+    padding-top: 38px;
+    background: transparent url(/images/spoon.jpg) no-repeat right bottom;
+}
+
+/* give a max-width for image in posts so they don't take to much space when
+   there is not much place */
+.entry-content {
+    img.left, img.right {
+        /* golden ratio */
+        max-width: 62%;
+    }
+    .codeblock-comment {
+        font-size: 80%;
+        margin-top: -1.6em;
+    }
+}
+
+/* GitHub navbar link */
+#github-navbar-link {
+    padding-top: 0.9em;
+    padding-bottom: 0;
+    img {
+        height: 23px;
+    }
+}
+
+/* sexy underline for navbar active item */
+.navbar-default .navbar-nav > .active > a {
+    &, &:active, &:focus {
+        border-bottom: 1px solid #d33682;
+    }
+}
+
+/* mobile friendly fix */
+.navbar-default a.navbar-brand.visible-xs {
+    margin-top: 1em;
+}

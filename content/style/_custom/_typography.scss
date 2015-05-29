@@ -1,0 +1,95 @@
+a[title=Homepage] {
+    font-weight: bold;
+}
+
+h1, h2, h3 {
+    margin-top: 32px;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+h4, h5, h6 {
+    line-height: 1.3;
+}
+
+.entry-content {
+    font-size: 14px;
+    @media only screen and (min-width: 768px) {
+        font-size: 16px;
+    }
+}
+
+q {
+    font-style: italic;
+    &:before {
+        content: "\201C";
+    }
+    &:after {
+        content: "\201D";
+    }
+}
+
+/* http://fonts.googleapis.com/css?family=Droid+Sans:400,700 */
+@font-face {
+    font-family: 'Droid Sans';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Droid Sans'), local('DroidSans'), url(/fonts/s-BiyweUPV0v-yRb-cjciPk_vArhqVIZ0nv9q090hN8.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Droid Sans';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Droid Sans Bold'), local('DroidSans-Bold'), url(/fonts/EFpQQyG9GqCrobXxL-KRMYWiMMZ7xLd792ULpGE4W_Y.woff2) format('woff2');
+}
+
+/* http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic */
+@font-face {
+    font-family: 'Droid Serif';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Droid Serif'), local('DroidSerif'), url(/fonts/0AKsP294HTD-nvJgucYTaI4P5ICox8Kq3LLUNMylGO4.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Droid Serif';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Droid Serif Bold'), local('DroidSerif-Bold'), url(/fonts/QQt14e8dY39u-eYBZmppwYlIZu-HDpmDIZMigmsroc4.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Droid Serif';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Droid Serif Italic'), local('DroidSerif-Italic'), url(/fonts/cj2hUnSRBhwmSPr9kS5898u2Q0OS-KeTAWjgkS85mDg.woff2) format('woff2');
+}
+@font-face {
+    font-family: 'Droid Serif';
+    font-style: italic;
+    font-weight: 700;
+    src: local('Droid Serif Bold Italic'), local('DroidSerif-BoldItalic'), url(/fonts/c92rD_x0V1LslSFt3-QEpo9ObOXPY1wUIXqKtDjSdsY.woff2) format('woff2');
+}
+
+$sans: 'Droid Sans', sans-serif;
+$serif: 'Droid Serif', serif;
+$mono: Menlo,Monaco,Consolas,"Courier New",monospace; /* that's what Twitter Bootstrap use for <code> */
+$heading-font-family: 'Droid Sans', sans-serif;
+$header-title-font-family: 'Droid Sans', sans-serif;
+$header-subtitle-font-family: 'Droid Sans', sans-serif;
+
+.h1, .h2, .h3, .h4, .h5, .h6,
+ h1,  h2,  h3,  h4,  h5,  h6,
+body {
+    font-family: $sans;
+}
+
+span.brand {
+    font-style: italic;
+}
+span.path,
+span.filename,
+span.manpage {
+    padding: 2px 4px;
+    background-color: #f8f8f8;
+    font-size: 90%;
+    font-family: $mono;
+}

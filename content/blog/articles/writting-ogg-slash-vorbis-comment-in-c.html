@@ -1,0 +1,180 @@
+---
+kind: article
+navbar: Blog
+title: "writting Vorbis Comment in C"
+created_at: 2013-09-29 18:59
+updated_at: 2013-12-07 19:07
+comments: true
+tags: [programming, C]
+---
+
+<div class="clearfix">
+    <img class="no-border left" src="<%= static_url '/images/ogg-logo.png' %>" alt="Ogg logo">
+    <p>
+        Not too long ago (back in 2008) I wrote
+        <a href="https://github.com/kAworu/tagutil">tagutil</a>, a small CLI
+        tool to display and edit music files tags. At the time I felt in need
+        of something easy script without GUI, but most of all I wanted a tool
+        with a complete support for <em>Vorbis Comment</em>.
+  <p>
+        While both <a href="http://www.vorbis.com/">Ogg/Vorbis</a> and
+        <a href="https://xiph.org/flac/">FLAC</a> uses Vorbis Comment,
+        <em>libFLAC</em> has the courtesy to provide a simple API to read and
+        write them, where <em>libogg</em>/<em>libvorbis</em> only provide a way
+        to read them. OK, It's not entierly true; it is possible to write them,
+        it's just <em>damn hard</em> compared to libFLAC because you need
+        <em>a good understanding of Ogg/Vorbis's design</em>.
+</div>
+
+<!-- more -->
+
+<h2>Theory time!</h2>
+
+<p>
+    In order to modify Vorbis Comment you need to understand a bit about
+    Ogg/Vorbis. In a Ogg/Vorbis stream, Ogg is the <em>container format</em>
+    and Vorbis is the <em>audio codec format</em>. So far so good.
+
+<h3>Ogg</h3>
+
+<p>
+    An Ogg <em>stream</em> is divided into <em>pages</em> containing
+    <em>packets</em>.  Each page contains up to 255 <em>segments</em>, and a
+    packet can be formed by any number of segments. Without going too deep,
+    what you need to understand is:
+</p>
+<ul>
+    <li>
+        A <em>packet</em>, which is a
+        <q>meaningful unit of data for the decoder</q>, is contained into one
+        or more pages.
+    <li>
+        A <em>page</em> can contains many packets, or one unique packet, or
+        only parts of a packet (that is several segments of said packet but not
+        all of them).
+</ul>
+
+<p>
+    If you want to know more, you'll find plenty of documentation on the web
+    (<a href="https://en.wikipedia.org/wiki/Ogg">The Ogg page on Wikipedia</a>
+    is a good start).
+
+<h3>Vorbis</h3>
+
+<p>
+    A Vorbis stream is logically divided into packets and the
+    <em>three first packet are the header packets</em>. More importantly for
+    us, the <em>Vorbis Comment header is the second packet</em>. Thus, the
+    general algorithm to replace Vorbis Comment is, as described in the
+    "Metadata workflow" of
+    <a href="https://xiph.org/vorbis/doc/libvorbis/overview.html">libvorbis documentation</a>:
+</p>
+
+<ol>
+    <li> copy the first packet
+    <li> insert a packet with your own Vorbis Comment
+    <li>copy the third and all following packets.
+</ol>
+
+<h2>There's always a trick <small class="text-muted">that's where the pain comes in</small></h2>
+
+<p>
+    For each audio packet, we need to compute the <em>granulepos</em>. The
+    granulepos is an codec specific value, allowing seeking through the stream.
+    In Vorbis the granulepos is based on the number of sample elapsed. The
+    sample count for a packet can be computed using the
+    <a href="https://xiph.org/vorbis/doc/libvorbis/vorbis_packet_blocksize.html">
+        <code>vorbis_packet_blocksize()</code>
+    </a> routine.
+
+    <a href="http://lists.xiph.org/pipermail/vorbis-dev/2003-November/007936.html">
+        An interesting discussion
+    </a> on the vorbis-dev mailling about granulepos explains why we need to
+    compute it for each packet and hint that
+    <code>vorbis_packet_blocksize()</code> is poorly named and actually compute
+    the number of samples that a packet would hold.
+
+<p>
+    It is important to note that although the granulepos value is only
+    meaningful for the codec, it is stored at the <em>Ogg page layer</em>.
+
+<p class="text-muted">
+    More about the granulepos:
+</p>
+
+<ul class="text-muted">
+    <li>In general: <a href="http://cgit.freedesktop.org/gstreamer/gst-plugins-base/tree/ext/ogg/README">the Gstreamer README about ogg</a>
+    <li> Ogg: <a href="https://wiki.xiph.org/GranulePosAndSeeking">How to seek using granulepos from the xiph wiki</a>
+    <li> Vorbis: <a href="https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-130000A.2">the Encapsulation section from the vorbis specifications</a>
+</ul>
+
+<h2>C examples</h2>
+
+<p>
+    Most examples are tools to repair the <em>granulepos</em>. Although not
+    obvious at first, they are very close to do what we need. The only
+    difference is that we want to replace the second header packet. Since the
+    <em>granulepos</em> has to be computed only for audio packets, there is no
+    need to compute it for the header packets.
+
+<h3>vorbiscomment</h3>
+
+<p>
+    The reference example is
+    <a href="https://svn.xiph.org/trunk/vorbis-tools/vorbiscomment/">vorbiscomment</a>
+    from vorbis-tools. Unlike the other examples, this program is able to alter
+    Vorbis Comment. Although it does what we want, two problems prevented me to
+    make good use of it:
+</p>
+
+<ol>
+    <li>It's licensed under the GPLv2 (and my project is under a 2-clause BSD).
+    <li>It's not as easy to read as you would like an example to be.
+</ol>
+
+<p>
+    The magic happens in the <code>vcedit_write()</code> routine from
+    <a href="<%= static_url '/code/ogg/vcedit.c' %>">vcedit.c</a>.
+
+<h3>revorb.cpp <small class="text-muted">it's actually C</small></h3>
+
+<p>
+    <a href="<%= static_url '/code/ogg/revorb.cpp' %>">This program</a> wrote by
+    Jiri Hruska is a granuelpos fixer. The header packets processing
+    is easy to read and is the purpose of the <code>copy_headers()</code>
+    routine. The granulepos computation use the same formula as in vcedit.
+
+<h3>oggfix_granulepos.c</h3>
+
+<p>
+    Gunter Königsmann wrote a small program to
+    <q>
+        recalculates the granulepos of a complete Ogg/Vorbis stream without altering the rest of it
+    </q>.  He kindly
+    <a href="http://lists.xiph.org/pipermail/vorbis-dev/2010-November/020173.html">
+        sent it to the vorbis-dev mailling list
+    </a> (I also host a copy
+    <a href="<%= static_url '/code/ogg/oggfix_granulepos.c' %>">here</a>). It is very
+    well commented and its granulepos computation is unlike every other
+    examples: it actually decode the Vorbis stream to get the samples count "by
+    hand" rather than using <code>vorbis_packet_blocksize()</code>.
+
+<h2>Conclusion</h2>
+
+<p>
+    There is a lot of work and understanding to get the job done. Ideally there
+    should be simple ways of doing simple tasks. I hope that this post will
+    help anyone trying to modify Vorbis Comment !
+
+<p>
+    The <kbd>#vorbis</kbd> IRC channel on freenode was kind, reactive and
+    precise. Looking back I should have get there sooner. Kudos to them !
+
+<p>
+    Finally, here is my program to write Vorbis Comment.  For simplicity's sake
+    the error handling was done using <span class="manpage">assert(3)</span>
+    and should be adapted. If you want to read an example with error handling
+    you can check
+    <a href="https://github.com/kAworu/tagutil/blob/master/t_ftoggvorbis.c">here</a>.
+
+<%= include_code 'ogg/vorbis_comment.c', title: "writting Vorbis Comment in C", language: 'c' %>

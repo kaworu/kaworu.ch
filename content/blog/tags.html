@@ -1,0 +1,22 @@
+---
+layout: page
+navbar: Tags
+title: "Blog Tags"
+comments: false
+---
+
+<div id="blog-categories">
+    <% tags.sort_by { |item| item[:articles].count }.reverse.each do |item| %>
+        <article>
+            <h2>
+                <a href="<%= item.path %>"><%= h item[:tag] %></a>
+            </h2>
+            <p class="meta text-muted">
+                <span class="glyphicon glyphicon-pencil"></span>
+                <%= h item[:articles].length.humanize %> <%= item[:articles].length > 1 ? 'posts' : 'post' %> in <%= h item[:tag] %>
+                <span class="glyphicon glyphicon-calendar"></span>
+                last post on <%= attribute_to_time(item[:articles].first[:created_at]).strftime(@config[:date_format]) %>
+            </p>
+        </article>
+    <% end %>
+</div>

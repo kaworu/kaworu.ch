@@ -1,3 +1,5 @@
+.pygments-cache/
+.sass-cache/
 vendor/
 tmp/
 output/

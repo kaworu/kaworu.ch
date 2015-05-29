@@ -1,0 +1,58 @@
+---
+kind: article
+navbar: Blog
+title: "taming Owncloud 8 max upload file size with php-fpm"
+created_at: 2015-05-01 13:41:09 +0200
+comments: true
+tags: [sysadmin]
+---
+
+<div class="clearfix">
+    <img class="left" src="<%= static_url '/images/ownCloud-logo.png' %>" alt="ownCloud logo">
+    <p>
+        After updating ownCloud to 8, the max file upload suddenly ignored my
+        customizations efforts that were working flawlessly with ownCloud 7.
+        Instead of the configured 4G, ownCloud would cap the max file upload size
+        to 513M (a very odd looking number for the geeky eye). A quick
+        <code>phpinfo()</code> revealed that both
+        <code>upload_max_filesize</code> and <code>post_max_size</code> were
+        locally set to 513M. To the best of my knowledge, the only way to
+        locally override theses options was by using a
+        <span class="filename">.htaccess</span> file but since my setup does
+        not use Apache + mod_php but nginx + php-fpm instead (and thus should
+        ignore <span class="filename">.htaccess</span>), I was rather confused.
+</div>
+
+<!-- more -->
+
+<h2>there comes .user.ini</h2>
+
+<p>
+    Well, since PHP 5.3.0 there is a file that get to override php.ini stuff:
+    <a href="https://php.net/manual/en/configuration.file.per-user.php">the .user.ini files</a>.
+    So, there are two solutions:
+</p>
+
+<ol>
+    <li>
+        remove ownCloud's <span class="filename">.user.ini</span> file and live
+        in the fear of any update (re)installing it.
+    <li>
+        disable those evil <span class="filename">.user.ini</span> files from
+        <span class="filename">php.ini</span>:
+</ol>
+
+```{"language":"dosini","title":"php.ini","linenos":false}
+; ...
+
+;;;;;;;;;;;;;;;;;;;;
+; php.ini Options  ;
+;;;;;;;;;;;;;;;;;;;;
+; Name for user-defined php.ini (.htaccess) files. Default is ".user.ini"
+;user_ini.filename = ".user.ini"
+
+; To disable this feature set this option to empty value
+user_ini.filename =
+
+; ...
+```

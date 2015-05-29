@@ -1,0 +1,7 @@
+* check: RSS
+* check: sitemap should not have everything (css, txt, favicon) in it
+* deployment setup
++ cleanup (lib)
+* Microdata (http://en.wikipedia.org/wiki/Microdata_%28HTML%29 / http://html5doctor.com/microdata/)
++ images optim
++ gallery

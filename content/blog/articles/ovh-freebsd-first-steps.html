@@ -1,0 +1,186 @@
+---
+kind: article
+navbar: Blog
+title: "OVH: First steps with FreeBSD"
+created_at: 2013-05-11 00:43 +01:00
+updated_at: 2013-05-12 21:29 +01:00
+comments: true
+tags: [sysadmin, FreeBSD]
+---
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/freebsd-logo.png' %>" alt="FreeBSD Logo">
+    <p>
+        Most of my online stuff (including this web log) is hosted on a
+        dedicated server at OVH running <a href="https://www.freebsd.org/">FreeBSD</a>.
+    <p>
+        Hopefully, I'll be posting more stuff about the services I configured
+        later on. This post aim to guide you to the very first steps that you
+        might want to take (regardless of what your server is going to do in
+        the end).
+</div>
+
+<!-- more -->
+
+<h2>0. Remove the SSH backdoor</h2>
+
+<p>
+    As far as I know, all OVH dedicated servers come with some
+    <q>customizations</q>. The first one is a pair of SSH keys
+    <em>allowing root access to your machine from cache.ovh.net</em>. The cure
+    is simple:
+
+```{"linenos":false}
+# rm /root/.ssh/authorized_keys2
+```
+
+<h2>1. Secure sshd</h2>
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/openssh-logo.png' %>" alt="Puffy!">
+
+    <p>
+        On a fresh install, <code>sshd</code> will allow both password
+        authentication and root login.  Before changing theses parameters
+        you'll obviously need to create a new user in order to stay able to
+        login.
+    <p>
+        Add it to the <code>wheel</code> group so it can <kbd>su -l root</kbd>
+        without trouble and install your SSH key. Test both remote SSH login
+        with your new user and that you can <span class="manpage">su(8)</span>
+        to root.
+    <p>
+        Now you can edit sshd configuration.
+</div>
+
+```{"title":"/etc/ssh/sshd_config","linenos":false}
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM no
+```
+<p>
+    Finally, kindly ask sshd to reload its configuration:
+
+```{"linenos":false}
+# service sshd reload
+```
+
+<h2>2. Fix the network configuration</h2>
+
+<p>
+    The default <span class="brand">FreeBSD</span> template from OVH has a very
+    broken IPv6 configuration. After hours of searching and learning about
+    IPv6, I've finally managed to get it working (earning a nice <q>Sage</q>
+    certification at <a href="https://ipv6.he.net/">ipv6.he.net</a>).
+
+<p>
+  Here is what you will need in your <span class="path">/etc/rc.conf</span>. Be
+  sure to adapt both the IP address and the default router IP. To make it
+  easier, the default OVH configuration commented out at the end.
+
+```{"title":"/etc/rc.conf","language":"sh","linenos":false}
+# IPv6 configuration
+ipv6_activate_all_interfaces="YES"
+ipv6_network_interfaces="auto"
+ip6addrctl_policy="ipv6_prefer"
+ifconfig_re0_ipv6="inet6 accept_rtadv 2001:41d0:1:5db0::1 prefixlen 64"
+ipv6_defaultrouter="2001:41d0:1:5dff:ff:ff:ff:ff"
+
+# IPv6 configuration (default OVH: not working)
+#ipv6_enable="YES"
+#ipv6_network_interfaces="re0"
+#ifconfig_re0_ipv6="inet6 2001:41d0:1:5db0::1 prefixlen 64"
+#ipv6_static_routes="ovhgw"
+#ipv6_route_ovhgw="2001:41d0:1:5dff:ff:ff:ff:ff -prefixlen 128 -interface re0"
+#ipv6_defaultrouter="2001:41d0:1:5dff:ff:ff:ff:ff"
+```
+
+<p>
+    On a beautiful day of spring, IPv6 suddenly stopped to work.  After trying
+    to fix it without success, I wrote to the OVH support to ask if they did
+    change something in the router configuration because my server did not
+    receive <em>Router Advertisement</em> anymore. Although I provided a lot of
+    informations, their answer was that there was no solution at the time and
+    suggested to <q>disable IPv6 from my OS</q>.
+
+<p>
+    After a few research I've found out that you can send a
+    <em>Router Solicitation</em> with <span class="manpage">rtsol(8)</span>. I
+    believe that the router should send Advertisement each ten minutes but I'm
+    just asking every five minutes for it (adapt for your network interface,
+    mine is <code>re0</code>).
+
+```{"title":"/etc/crontab","linenos":false}
+*/5 *   *   *   *   root    rtsol -d re0
+```
+
+<p>
+    Now that you just had a look the system's crontab, you might have noticed
+    that there is an unusual line. <q>Welcome to Wonderland, Alice</q>.
+
+
+<h2>3. Remove the crap</h2>
+
+<p>
+    OVH has written its own tool of <q>Real Time Monitoring</q> and it is
+    installed and running by default on their servers. What it does is
+    gathering data about your system and running process. The data then
+    <em>sent to OVH</em> (to an IP defined in
+    <span class="path">/usr/local/rtm/etc/rtm-ip</span>).
+
+<p>
+    If, like me, you want to nuke it, start by either remove or commenting out
+    the vicious line in the system's crontab.
+
+```{"title":"/etc/crontab","linenos":false}
+*/1 * * * * root /usr/local/rtm/bin/rtm 30 > /dev/null 2> /dev/null
+```
+
+<p>
+    Now remove or move the whole rtm directory:
+
+```{"linenos":false}
+# mv /usr/local/rtm /root/usr.local.rtm
+```
+
+<p>
+    Finally just kick out the ovh user:
+
+```{"linenos":false}
+# rmuser ovh
+```
+
+<h2>4. REMOVE <em>ALL</em> THE CRAP!</h2>
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/x-all-the-y.png' %>" alt="x ALL the y">
+
+    <p>
+        You'll notice that some packages are already installed. A quick
+        <kbd>pkg info</kbd> will show them all (if that is the first time that you
+        run <span class="manpage">pkg(8)</span> it will ask if it can bootstrap.
+        Just say yes and let the magic happen).
+
+    <p>
+        Depending on your personal taste, you might want to keep some of them (like
+        smartmontools) and you might want to kick some of them out (the GNUish
+        stuff like bash and wget).
+</div>
+
+<h2>5. The End™</h2>
+
+<p>
+    Now we're finally close to a secure, vanilla FreeBSD setup.  From there you
+    can finally start the real business like configuring Packet Filter or add
+    Journaling Softupdates. Note that if you're using OVH's default partition
+    schema you have two different partitions:
+    <span class="path">/root</span> and <span class="path">/home</span>.  My
+    server's <em>/root is only 10 Go</em> so I have to keep it in mind when
+    installing new stuff, like PostgreSQL (because pgsql's home is
+    <span class="path">/usr/local/pgsql</span>) or web applications in
+    <span class="path">/usr/local/www</span>.
+
+<p>
+    that's all, drop a comment if this post has been useful for you or any
+    remark or question :)

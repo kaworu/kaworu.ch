@@ -1,0 +1,14 @@
+<% if @short_name %><!-- Disqus -->
+        <script type="text/javascript">
+        var disqus_shortname = '<%= h @short_name %>';
+        // var disqus_developer = 1;
+        var disqus_identifier = '<%= h @id %>';
+        var disqus_url = disqus_identifier;
+        var disqus_script = 'embed.js';
+        (function () {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+        </script>
+        <!-- End Disqus --><% end %>

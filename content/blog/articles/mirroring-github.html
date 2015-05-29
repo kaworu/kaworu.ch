@@ -1,0 +1,42 @@
+---
+kind: article
+navbar: Blog
+title: "mirroring GitHub"
+created_at: 2014-09-23 22:19:24 +0200
+comments: true
+tags: [sysadmin, FreeBSD]
+---
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/githubdl.png' %>" alt="Mirroing GitHub">
+    <p>
+        As you may (or may not) know, I swichted a while back from self-hosted
+        mercurial repositories to <a href="https://github.com/kAworu">GitHub</a>.
+        While I'm happy with GitHub, I still want to have my favourites
+        repositories available at hand (if/when GitHub is down).
+
+    <p>
+        Although there are already a lot of "backup script" on the net I wanted
+        something very stupid and simple which integrate well with
+        <span class="brand">FreeBSD</span>, so I wrote a
+        <span class="manpage">periodic(8)</span> script.
+</div>
+
+<!-- more -->
+
+
+<h2>Show me the code</h2>
+
+<p>
+    The script is straightforward. Once you've completed your
+    <span class="path">/etc/rc.conf.local</span> root is going to have a nice
+    report in your "daily run output" e-mail.
+
+<p>
+    It could be improved to also pull wiki and/or issues etc, if you come up
+    with some code let me know !
+
+    <%= include_code '999.git-pull', language: 'sh', title: '/usr/local/etc/periodic/daily/999.git-pull' %>
+
+<p>
+    Happy hacking !

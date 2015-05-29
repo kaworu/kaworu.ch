@@ -1,0 +1,41 @@
+<!-- page layout -->
+<div class="row">
+    <div class="page-content col-md-12">
+        <article role="article" <%= 'class="hentry"' if @item[:kind] == 'article' %>>
+            <% unless @item[:no_page_header] %>
+                <header class="page-header">
+                    <% if @item[:created_at] %>
+                        <p class="meta text-muted text-uppercase">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                            <%= attribute_to_time(@item[:created_at]).strftime(@config[:date_format]) %>
+                        </p>
+                    <% end %>
+                    <% if @item[:title] %>
+                        <h1 class="entry-title">
+                            <%= h @item[:title] %>
+                            <% if @item[:subtitle] %>
+                                <small><%= h @item[:subtitle] %></small>
+                            <% end %>
+                        </h1>
+                    <% end %>
+                </header>
+            <% end %>
+
+            <div class="<%= 'entry-content' unless @item[:kind] == 'blog-page' %> clearfix">
+                <%= yield %>
+            </div>
+
+            <%= content_for(@item, :entry_content_footer) || '' %>
+        </article>
+
+        <% if @config[:disqus_short_name] and @item[:comments] %>
+            <section class="comments">
+                <h2>Comments</h2>
+                <div id="disqus_thread" aria-live="polite">
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                </div>
+            </section>
+        <% end %>
+    </div>
+</div>
+<!-- /page layout -->
