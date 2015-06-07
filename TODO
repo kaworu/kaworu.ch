@@ -1,4 +1,3 @@
-* check: RSS
 * check: sitemap should not have everything (css, txt, favicon) in it
 * deployment setup
 + cleanup (lib)

@@ -2,4 +2,4 @@
 path: "/atom.xml"
 is_hidden: true
 ---
-<%= atom_feed %>
+<%= atom_feed limit: 9001 %>
