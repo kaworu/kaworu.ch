@@ -1,7 +1,7 @@
 <!-- page layout -->
 <div class="row">
     <div class="page-content col-md-12">
-        <article role="article" <%= 'class="hentry"' if @item[:kind] == 'article' %>>
+        <article role="article" class="hentry">
             <% unless @item[:no_page_header] %>
                 <header class="page-header">
                     <% if @item[:created_at] %>
@@ -24,18 +24,7 @@
             <div class="<%= 'entry-content' unless @item[:kind] == 'blog-page' %> clearfix">
                 <%= yield %>
             </div>
-
-            <%= content_for(@item, :entry_content_footer) || '' %>
         </article>
-
-        <% if @config[:disqus_short_name] and @item[:comments] %>
-            <section class="comments">
-                <h2>Comments</h2>
-                <div id="disqus_thread" aria-live="polite">
-                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-                </div>
-            </section>
-        <% end %>
     </div>
 </div>
 <!-- /page layout -->

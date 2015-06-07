@@ -1,26 +1,32 @@
 <!-- partial _blog_page -->
-<div id="blog-index">
+<div id="blog-index" itemscope itemtype="https://schema.org/Blog">
+    <meta itemprop="name"        content="<%= h @config[:title] %>">
+    <meta itemprop="description" content="<%= h @config[:description] %>">
+    <meta itemprop="url"         content="<%= @config[:base_url] %>">
+
     <% for article in @articles %>
-        <article class="post">
+        <article class="post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
             <% unless article[:no_header] %>
                 <header class="page-header">
                     <% if article[:created_at] %>
                         <p class="meta text-muted text-uppercase">
                             <span class="glyphicon glyphicon-calendar"></span>
-                            <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
+                            <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" itemprop="datePublished dateCreated">
+                                <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
+                            </time>
                         </p>
                     <% end %>
                     <% if article[:title] %>
-                        <h2 class="entry-title">
-                            <a href="<%= article.path %>"><%= article[:title] %></a>
+                        <h2 class="entry-title" itemprop"name headline">
+                            <a href="<%= article.path %>" itemprop="url"><%= article[:title] %></a>
                         </h2>
                     <% end %>
                 </header>
             <% end %>
-            <div class="entry-content clearfix">
+            <div class="entry-content clearfix" itemprop="<%= has_excerpt?(article.compiled_content) ? 'description' : 'articleBody' %>">
                 <%= excerptize article.compiled_content %>
             </div>
-            <% if has_excerpt(article.compiled_content) %>
+            <% if has_excerpt?(article.compiled_content) %>
                 <footer>
                     <a class="read-more btn btn-default pull-right" href="<%= article.path %>"><%= @config[:excerpt_link] %></a>
                 </footer>

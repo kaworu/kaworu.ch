@@ -70,7 +70,7 @@ preprocess do
 
   generate_tag_pages_items
   generate_blog_pages_items
-  setup_previous_next_nav sorted_articles
+  setup_previous_next_nav sorted_articles.reverse
   setup_previous_next_nav blog_pages.reverse
 end
 
@@ -113,7 +113,6 @@ compile '/blog/articles/*' do
   end
   filter :octohl
   layout 'article'
-  layout 'page'
   layout 'default'
 end
 route '/blog/articles/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html

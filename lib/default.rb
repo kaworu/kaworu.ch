@@ -69,7 +69,7 @@ def excerptize content
   end
 end
 
-def has_excerpt content
+def has_excerpt? content
   not content.to_s.index(@config[:excerpt_separator]).nil?
 end
 

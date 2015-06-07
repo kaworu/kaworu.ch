@@ -1,48 +1,93 @@
 <!-- article layout -->
-<%= yield %>
+<div class="row">
+    <div class="page-content col-md-12" itemscope itemtype="https://schema.org/Blog">
+        <meta itemprop="name"        content="<%= h @config[:title] %>">
+        <meta itemprop="description" content="<%= h @config[:description] %>">
+        <meta itemprop="url"         content="<%= @config[:base_url] %>">
 
-<% content_for :entry_content_footer do %>
-<footer>
-    <p class="meta text-muted">
-        <!-- author -->
-        <span class="glyphicon glyphicon-user"></span>
-        <span class="byline author vcard">Posted by <span class="fn"><%= item_author @item %></span></span>
-        <!-- dates -->
-        <span class="glyphicon glyphicon-calendar"></span>
-        <% if @item[:updated_at] %>
-        <time datetime="<%= attribute_to_time(@item[:updated_at]).xmlschema %>" class="updated">
-            Updated <%= attribute_to_time(@item[:updated_at]).strftime(@config[:date_format]) %>
-        </time>
-        <% else %>
-        <time datetime="<%= attribute_to_time(@item[:created_at]).xmlschema %>" <% if @item[:updated_at] %>data-updated="true"<% end %>>
-            <%= attribute_to_time(@item[:created_at]).strftime(@config[:date_format]) %>
-        </time>
-        <% end %>
-        <% if @item[:tags] and not @item[:tags].length.zero? %>
-        <!-- tags -->
-        <span class="glyphicon glyphicon-tags"></span> 
-        <span class="tags">
-        <% for tag in @item[:tags] do %>
-            <a class="tag label label-primary" href="<%= tag_path tag %>"><%= h tag %></a>
-        <% end %>
-        </span>
-        <% end %>
-    </p>
+        <article role="article" class="hentry" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+            <meta itemprop="url" content="<%= canonical_url %>">
 
-    <% if @item[:previous] or @item[:next] %>
-    <ul class="meta text-muted pager">
-        <% if @item[:previous] %>
-            <li class="previous">
-                <a href="<%= @item[:previous].path %>" title="Previous Post: <%= h @item[:previous][:title] %>">&laquo;&nbsp;<%= h @item[:previous][:title] %></a>
-            </li>
+            <% unless @item[:no_page_header] %>
+                <header class="page-header">
+                    <% if @item[:created_at] %>
+                        <p class="meta text-muted text-uppercase">
+                            <span class="glyphicon glyphicon-calendar"></span>
+                            <time datetime="<%= attribute_to_time(@item[:created_at]).xmlschema %>" itemprop="datePublished dateCreated">
+                                <%= attribute_to_time(@item[:created_at]).strftime(@config[:date_format]) %>
+                            </time>
+                        </p>
+                    <% end %>
+                    <% if @item[:title] %>
+                        <h1 class="entry-title" itemprop"name headline">
+                            <%= h @item[:title] %>
+                            <% if @item[:subtitle] %>
+                                <small><%= h @item[:subtitle] %></small>
+                            <% end %>
+                        </h1>
+                    <% end %>
+                </header>
+            <% end %>
+
+            <div class="entry-content clearfix" itemprop="articleBody">
+                <%= yield %>
+            </div>
+
+            <footer>
+                <p class="meta text-muted">
+                    <!-- author -->
+                    <span class="glyphicon glyphicon-user"></span>
+                    <span class="byline author vcard" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                        Posted by
+                        <span class="fn" itemprop="name"><%= item_author @item %></span>
+                    </span>
+                    <!-- dates -->
+                    <span class="glyphicon glyphicon-calendar"></span>
+                    <% if @item[:updated_at] %>
+                        <time datetime="<%= attribute_to_time(@item[:updated_at]).xmlschema %>" data-updated="true" class="updated" itemprop="dateModified">
+                            Updated <%= attribute_to_time(@item[:updated_at]).strftime(@config[:date_format]) %>
+                        </time>
+                    <% else %>
+                        <time datetime="<%= attribute_to_time(@item[:created_at]).xmlschema %>">
+                            <%= attribute_to_time(@item[:created_at]).strftime(@config[:date_format]) %>
+                        </time>
+                    <% end %>
+                    <% if @item[:tags] and not @item[:tags].length.zero? %>
+                        <!-- tags -->
+                        <span class="glyphicon glyphicon-tags"></span> 
+                        <span class="tags">
+                        <% for tag in @item[:tags] do %>
+                            <a class="tag label label-primary" href="<%= tag_path tag %>"><%= h tag %></a>
+                        <% end %>
+                        </span>
+                    <% end %>
+                </p>
+
+                <% if @item[:previous] or @item[:next] %>
+                <ul class="meta text-muted pager">
+                    <% if @item[:previous] %>
+                        <li class="previous">
+                            <a href="<%= @item[:previous].path %>" title="Previous Post: <%= h @item[:previous][:title] %>">&laquo;&nbsp;<%= h @item[:previous][:title] %></a>
+                        </li>
+                    <% end %>
+                    <% if @item[:next] %>
+                        <li class="next">
+                            <a href="<%= @item[:next].path %>" title="Next Post: <%= h @item[:next][:title] %>"><%= h @item[:next][:title] %>&nbsp;&raquo;</a>
+                        </li>
+                    <% end %>
+                </ul>
+                <% end %>
+            </footer>
+        </article>
+
+        <% if @config[:disqus_short_name] and @item[:comments] %>
+            <section class="comments">
+                <h2>Comments</h2>
+                <div id="disqus_thread" aria-live="polite">
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                </div>
+            </section>
         <% end %>
-        <% if @item[:next] %>
-            <li class="next">
-                <a href="<%= @item[:next].path %>" title="Next Post: <%= h @item[:next][:title] %>"><%= h @item[:next][:title] %>&nbsp;&raquo;</a>
-            </li>
-        <% end %>
-    </ul>
-    <% end %>
-</footer>
-<% end %>
+    </div>
+</div>
 <!-- /article layout -->
