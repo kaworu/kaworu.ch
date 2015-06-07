@@ -1,3 +1,4 @@
+
 <!-- partial _blog_page -->
 <div id="blog-index" itemscope itemtype="https://schema.org/Blog">
     <meta itemprop="name"        content="<%= h @config[:title] %>">
@@ -17,7 +18,7 @@
                         </p>
                     <% end %>
                     <% if article[:title] %>
-                        <h2 class="entry-title" itemprop"name headline">
+                        <h2 class="entry-title" itemprop="name headline">
                             <a href="<%= article.path %>" itemprop="url"><%= article[:title] %></a>
                         </h2>
                     <% end %>

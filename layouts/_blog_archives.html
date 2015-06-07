@@ -1,3 +1,4 @@
+
 <!-- partial _blog_archives -->
 <div id="blog-archives" itemscope itemtype="https://schema.org/Blog">
     <meta itemprop="name"        content="<%= h @config[:title] %>">
@@ -13,7 +14,7 @@
         <% end %>
 
         <article class="page-header" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-            <h2 class="post-title" itemprop"name headline">
+            <h2 class="post-title" itemprop="name headline">
               <a href="<%= canonical_url article %>" itemprop="url"><%= h article[:title] %></a>
             </h2>
             <p class="meta text-muted">

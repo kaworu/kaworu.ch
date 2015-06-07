@@ -6,6 +6,18 @@ updated_at: 2015-05-22 10:56
 comments: false
 ---
 
+<style scoped>
+    .about > section {
+        margin-bottom: 32px;
+    }
+    .about > section > img {
+        margin-top: 2em;
+    }
+    .about > section.me > img {
+        margin-top: -3em;
+    }
+</style>
+
 <div class="about">
     <section class="me clearfix">
         <img class="right me" src="<%= static_url '/images/me.jpg' %>" alt="alex">
@@ -179,15 +191,3 @@ comments: false
             vinyls belongs to this collection.
     </section>
 </div>
-
-<style scoped>
-    .about > section {
-        margin-bottom: 32px;
-    }
-    .about > section > img {
-        margin-top: 2em;
-    }
-    .about > section.me > img {
-        margin-top: -3em;
-    }
-</style>
