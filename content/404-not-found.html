@@ -1,0 +1,18 @@
+---
+layout: page
+title: "404 Page Not Found"
+is_hidden: true
+---
+
+<p style="text-align:right;font-family:Courrier,monospace;">
+    404_page_not_found();
+</p>
+
+<img class="center no-border" src="<%= static_url '/images/404-not-found.jpg' %>" alt="ENOENT">
+
+<style type="text/css">
+    /* avoid to display the page's title, it kinda give it all away */
+    [role=article] > header {
+        display: none;
+    }
+</style>
