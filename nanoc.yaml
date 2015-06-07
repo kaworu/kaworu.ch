@@ -75,6 +75,13 @@ checks:
     #   exclude: ['^/server_status']
     exclude: []
 
+# see http://nanoc.ws/docs/guides/deploying-nanoc-sites/
+deploy:
+    default:
+        kind: rsync
+        options: [ '-aP', '--delete-after' ]
+        dst:  "kaworu.ch@smaug.kaworu.ch:~/nanoc"
+
 base_url: https://kaworu.ch
 
 # our stuff.
