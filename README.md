@@ -1,4 +1,4 @@
-source for https://kaworu.ch, build with [nanoc](https://nanoc.ws/).
+source for https://kaworu.ch, built with [nanoc](https://nanoc.ws/).
 
 LICENSE
 -------
