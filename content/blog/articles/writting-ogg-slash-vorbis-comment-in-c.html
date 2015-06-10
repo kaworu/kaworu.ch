@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "writting Vorbis Comment in C"
 created_at: 2013-09-29 18:59
-updated_at: 2013-12-07 19:07
+updated_at: 2015-06-10 11:23
 comments: true
 tags: [programming, C]
 ---
@@ -171,10 +171,11 @@ tags: [programming, C]
     precise. Looking back I should have get there sooner. Kudos to them !
 
 <p>
-    Finally, here is my program to write Vorbis Comment.  For simplicity's sake
-    the error handling was done using <span class="manpage">assert(3)</span>
-    and should be adapted. If you want to read an example with error handling
-    you can check
-    <a href="https://github.com/kAworu/tagutil/blob/master/t_ftoggvorbis.c">here</a>.
+    Finally, here is my program to write Vorbis Comment. Note that in this
+    example you cannot use the ogg "source" file as the destination file, you
+    can find another of my example creating a temporary file and using
+    <span class="manpage">rename(2)</span>
+    <a href="https://github.com/kAworu/tagutil/blob/master/src/t_ftoggvorbis.c">here</a>
+    (but it's using non-standard stuff).
 
 <%= include_code 'ogg/vorbis_comment.c', title: "writting Vorbis Comment in C", language: 'c' %>
