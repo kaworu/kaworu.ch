@@ -160,7 +160,6 @@ figure.code, .gist {
   figcaption {
     position: relative;
     //@extend .code-title;
-    a { @extend .download-source; }
   }
   .highlight {
     margin-bottom: 0;
@@ -183,17 +182,6 @@ figure.code, .gist {
   border-left-color: #a5a5a5;
   border-right-color: #a5a5a5;
   border-bottom: 0;
-}
-
-.download-source {
-  top: 0.9em;
-  position: absolute; right: .8em;
-  @include hover-link;
-  //color: #666 !important;
-  z-index: 1;
-  font-size: 13px;
-  //text-shadow: #cbcccc 0 1px 0;
-  padding-left: 3em;
 }
 
 figure.code:not(.panel), .gist {

@@ -28,12 +28,21 @@ class OctoHighlight < Nanoc::Filter
   end
 
   def panelize(content, options)
-    title     = options['title'] ? "<h3 class=\"panel-title path\">#{h options['title']}</h3>" : ''
-    download  = options['href'] ? " <a href=\"#{h options['href']}\">download</a>" : ''
+    title = download = ''
+    if options['href']
+      download = <<-EOL
+        <a href="#{h options['href']}" title="download" class="btn btn-default btn-xs pull-right">
+          <span class="glyphicon glyphicon-download-alt"></span>
+        </a>
+      EOL
+    end
+    if options['title']
+      title = '<h3 class="panel-title path">%s</h3>' % h(options['title'])
+    end
     if title.empty? and download.empty?
       caption = ''
     else
-      caption = '<figcaption class="panel-heading">%s</figcaption>' % [title + download]
+      caption = '<figcaption class="panel-heading clearfix">%s</figcaption>' % [download + title]
     end
 
     (<<-EOL
