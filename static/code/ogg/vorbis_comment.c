@@ -314,7 +314,6 @@ main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	}
 
-
 	/* change something */
 	vorbis_comment_add(vc, "test=42");
 
