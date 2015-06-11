@@ -1,0 +1,26 @@
+---
+kind: article
+navbar: Blog
+title: "Keyboard issues with i3wm on Ubuntu 15.04"
+created_at: 2015-06-11 16:29:27 +0200
+comments: true
+tags: [Ubuntu, i3]
+---
+
+<div class="clearfix">
+    <img class="left no-border" src="<%= static_url '/images/i3wm-logo.png' %>" alt="i3wm Logo">
+    <p>
+        Since the update to 15.04 "Vivid Vervet" I've experienced some new
+        input issues: I could not input some characters, most notably those
+        requiring a combination of key to press. With a swiss-french layout I
+        could not input stuff like <kbd>` ^ ~</kbd> and use my
+        configured compose key. The culprit was unknown to me until then:
+        <a href="https://en.wikipedia.org/wiki/Intelligent_Input_Bus">IBus</a>.
+</div>
+
+<p>
+    To solve this issue, you can either launch <span class="manpage">im-config(8)</span> <em>as user</em> and select the "none" Input Method or simply do:
+```{"linenos":false}
+% echo "run_im none" > ~/.xinputrc
+```
+    Now restart X and enjoy your keyboard back.
