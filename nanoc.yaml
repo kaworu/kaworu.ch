@@ -93,7 +93,8 @@ description: kAworu's slice of web.
 author_name: kAworu
 author_uri: https://kaworu.ch/about
 
-# You can customize the format as defined in http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
+# You can customize the format as described at
+# http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
 date_format: "%a %e %b %Y, %l:%M %p"
 # Posts per page on the blog index
 paginate: 6

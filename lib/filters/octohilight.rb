@@ -1,11 +1,36 @@
+# Pygments Nanoc filter producing Twitter Bootstrap panels for code
+# highlighting.
+#
+# Using:
+#   The filter use a github-like syntax for codeblock:
+#   ```OPTIONS
+#   CODE
+#   ```
+#   where CODE is some code and options is an optional JSON string.
+#
+# Options:
+#   - language: (required) the syntaxe to highligh
+#               (ex. ruby, javascript etc.). See the Pygment documentation
+#               (http://pygments.org/docs/lexers/) for the full list.
+#   - title:    (optional) the panel's title.
+#   - linenos:  (true by default) if false the line numbers will not be
+#               generated in the table
+#   - href:     (optional) an adresse where the code snippet can be downloaded,
+#               a download button will be generated.
+#
+# Example:
+#   ```{"lang": "ruby", "title": "The Classic"}
+#   puts "Hello World!"
+#   ```
+# Hacking:
+#   If you want to hack this file and move it around be sure to check
+#   PYGMENTS_CACHE_DIR which is hardcoded below !
 class OctoHighlight < Nanoc::Filter
-  require 'digest/md5'
-  require 'fileutils'
   require 'json'
-  require 'pygments'
 
   identifier :octohl
 
+  # implement the filter.
   def run(content, params = {})
     content.gsub /```([^\n]*)\n(.+?)```$/m  do
       optstring = $1
@@ -19,14 +44,16 @@ class OctoHighlight < Nanoc::Filter
   end
 
   # Removes the first blank lines and any whitespace at the end.
-  def strip s
+  def strip(s)
     s.lines.drop_while { |line| line.strip.empty? }.join.rstrip
   end
 
-  def highlight content, options
+  # highlight the given text using the syntaxe provided in options.
+  def highlight(content, options)
     HighlightCode::highlight(content, options['language'])
   end
 
+  # generate a bootstrap panel, handling link (href) option and title.
   def panelize(content, options)
     title = download = ''
     if options['href']
@@ -54,6 +81,7 @@ class OctoHighlight < Nanoc::Filter
     ) % [caption, content]
   end
 
+  # wrap the highlighted code into a table, handling the linenos option.
   def tableize(content, options)
     lines = ''
     code  = ''
@@ -90,6 +118,10 @@ class OctoHighlight < Nanoc::Filter
   # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   # DEALINGS IN THE SOFTWARE.
+  require 'digest/md5'
+  require 'fileutils'
+  require 'pygments'
+
   PYGMENTS_CACHE_DIR = File.expand_path('../../../tmp/pygments-cache', __FILE__)
   FileUtils.mkdir_p(PYGMENTS_CACHE_DIR)
 

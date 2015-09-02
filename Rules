@@ -19,7 +19,7 @@ Compass.add_project_configuration 'compass_config.rb'
 
 preprocess do
  # setup the previous/next links
-  def setup_previous_next_nav items
+  def setup_previous_next_nav(items)
     first, last = 0, (items.length - 1)
     items.each_with_index do |item, i|
       item[:previous] = items[i - 1] if i > first
@@ -29,12 +29,11 @@ preprocess do
 
   # setup some items for tags pages
   def generate_tag_pages_items
-    # build something like {'tagname' => [article1, article0], ...}
-    sorted_articles.inject Hash.new do |tags, article|
-      (article[:tags] || Array.new).each do |tag|
-        (tags[tag] ||= Array.new) << article
-      end
-      tags
+    # build a Hash like {'tagname' => [article1, article0], ...}
+    sorted_articles.inject Hash.new do |injected, article|
+      article_tags = article[:tags] || Array.new
+      article_tags.each { |tag| (injected[tag] ||= Array.new) << article }
+      injected
     end.each do |tag, articles|
       @items << Nanoc::Item.new(
         "<%= render '_blog_archives', articles: @item[:articles] %>",
@@ -45,7 +44,7 @@ preprocess do
           tag: tag,
           articles: articles,
         },
-        "/blog/tags/#{tag}/"
+        "/blog/tags/#{tag}/" # FIXME: slugize ?
       )
     end
   end
