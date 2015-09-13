@@ -82,7 +82,8 @@
 
                             <% if @config[:simple_search] %>
                             <form class="search navbar-form navbar-right" action="<%= @config[:simple_search] %>" method="GET">
-                                <input type="hidden" name="sitesearch" value="<%= @config[:base_url].sub(%r{^https?://}, '') %>">
+                                <input type="hidden" name="sites" value="<%= @config[:base_url].sub(%r{^https?://}, '') %>">
+                                <input type="hidden" name="kj" value="#9B225C">
                                 <div class="form-group">
                                     <div class="input-group">
                                         <input class="form-control" type="text" name="q" placeholder="Search">
