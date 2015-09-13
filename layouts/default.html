@@ -84,7 +84,14 @@
                             <form class="search navbar-form navbar-right" action="<%= @config[:simple_search] %>" method="GET">
                                 <input type="hidden" name="sitesearch" value="<%= @config[:base_url].sub(%r{^https?://}, '') %>">
                                 <div class="form-group">
-                                    <input class="form-control" type="text" name="q" placeholder="Search">
+                                    <div class="input-group">
+                                        <input class="form-control" type="text" name="q" placeholder="Search">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="submit">
+                                                <span class="glyphicon glyphicon-search"></span>
+                                            </button>
+                                        </span>
+                                    </div>
                                 </div>
                             </form>
                             <% end %>
