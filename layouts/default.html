@@ -52,16 +52,16 @@
 
                         <div class="navbar-collapse collapse">
                             <ul class="nav navbar-nav">
-                                <li <%= @item[:navbar] === 'Blog' ? 'class="active"' : '' %>>
+                                <li <%= @item[:navbar] == 'Blog' ? 'class="active"' : '' %>>
                                     <a rel="index" href="/">Blog</a>
                                 </li>
-                                <li <%= @item[:navbar] === 'Archives' ? 'class="active"' : '' %>>
+                                <li <%= @item[:navbar] == 'Archives' ? 'class="active"' : '' %>>
                                     <a href="/blog/archives">Archives</a>
                                 </li>
-                                <li <%= @item[:navbar] === 'Tags' ? 'class="active"' : '' %>>
+                                <li <%= @item[:navbar] == 'Tags' ? 'class="active"' : '' %>>
                                     <a href="/blog/tags">Tags</a>
                                 </li>
-                                <li <%= @item[:navbar] === 'About' ? 'class="active"' : '' %>>
+                                <li <%= @item[:navbar] == 'About' ? 'class="active"' : '' %>>
                                     <a href="/about">About</a>
                                 </li>
 
