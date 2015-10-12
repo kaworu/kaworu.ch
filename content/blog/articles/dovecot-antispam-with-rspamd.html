@@ -1,9 +1,9 @@
 ---
 kind: article
 navbar: Blog
-title: "Dovecot antispam with Rspamd"
+title: "Dovecot antispam with Rspamd (part 1)"
 created_at: 2014-03-25 20:00:47 +0100
-updated_at: 2015-05-15 10:46:59 +0200
+updated_at: 2015-10-12 16:45:52 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -17,27 +17,48 @@ tags: [sysadmin]
         fast, free and extensible spam filtering system.
 
     <p>
-        To be honest I am not a guru when it comes to mail server configuration.
-        Every time I'm hacking something in the mail territory I have to look up
-        what is a MTA, MDA etc. Unlike spamassasin,
+        <del>
+            To be honest I am not a guru when it comes to mail server
+            configuration.  Every time I'm hacking something in the mail
+            territory I have to look up what is a MTA, MDA etc.
+        </del>
+        Well, now I think I am kinda good at understanding emails.
+    </p>
+    <p>
+        Unlike spamassasin,
         <span class="brand">Rspamd</span> was simple to setup and has sane
         defaults so I adopted it merrily. As a bonus, it has a sexy Web UI.
 
     <p>
         In this post I'll provide my configuration for a nice integration with
-        the <a href="http://wiki2.dovecot.org/Plugins/Antispam">dovecot antispam plugin</a>.
+        the <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>.
 </div>
 
 <!-- more -->
 
+<div class="alert alert-info">
+    <p>
+        <span class="glyphicon glyphicon-info-sign"></span>
+        This is the first part of the Dovecot &amp; Rspamd integration setup,
+        talking about Rspamd autolearn integration with
+        <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>.
+    <p>
+        Part 2 about mail filtering using
+        <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>
+        is
+        <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">here</a>.
+</div>
+
 <p class="alert alert-warning">
+    <span class="glyphicon glyphicon-warning-sign"></span>
     If you're planning to use <span class="brand">Rspamd</span> under FreeBSD
     be sure to  check the main
     <a href="https://rspamd.com/blog/">website news</a> before upgrades. In my
     experience there has been configuration breaks that were not advertised in
     UPDATING as one would expect.
+</p>
 
-```{"title":"90-plugin.conf"}
+```{"title":"conf.d/90-plugin.conf"}
 plugin {
     antispam_backend = mailtrain
     antispam_spam    = Junk
@@ -96,6 +117,12 @@ plugin {
     debugging because of that.
 
 <p>
-    That's it! If you need help or want to know more about rspamd, check
+    If you need help or want to know more about rspamd, check
     <a href="https://rspamd.com/">the website</a> or join <kbd>#rspamd</kbd> on
     freenode :D
+
+<p>
+    Check out
+    <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">part 2</a>
+    about mail filtering using
+    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>.

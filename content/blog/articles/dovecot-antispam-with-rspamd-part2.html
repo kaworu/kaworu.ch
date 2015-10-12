@@ -1,0 +1,147 @@
+---
+kind: article
+navbar: Blog
+title: "Dovecot antispam with Rspamd (part 2)"
+created_at: 2015-10-12 16:45:52 +0200
+comments: true
+tags: [sysadmin]
+---
+
+<div class="clearfix">
+    <img class="no-border right" src="<%= static_url '/images/mail.png' %>" alt="email">
+    <p>
+        Ahoy !<br>
+        I realized that forgot about half of the Rspamd &amp; Dovecot in
+        <a href="<%= article_path 'dovecot-antispam-with-rspamd' %>">my last article</a>,
+        so here is an attempt to correct this misstep.
+    </p>
+    <p>
+        In this article we'll configure Dovecot's Sieve to understand how
+        Rspamd assign spam score to emails. Then we'll implement policies to
+        reject or filter spam directly from sieve based on the spam score.
+        We'll use the <code>spamtest</code> and <code>spamtestplus</code> sieve
+        extensions both which are part of Dovecot.
+    <p>
+</div>
+
+<!-- more -->
+
+<p class="alert alert-info">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    This is the second part of the Dovecot &amp; Rspamd integration setup,
+    talking about mail filtering using
+    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>.
+    If you missed the first part about Rspamd autolearn integration with
+    <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>,
+    you'll find it
+    <a href="<%= article_path 'dovecot-antispam-with-rspamd' %>">here</a>.
+</p>
+
+<h2>Dovecot Sieve configuration</h2>
+<p>
+    First we will configure Dovecot's Sieve to parse Rspamd
+    <code>X-Spamd-Result</code> header, so later we can filter from sieve based
+    on the email's spam "score".
+</p>
+```{"title":"conf.d/90-sieve.conf"}
+# ...
+# Path to a script file or a directory containing script files that need to be
+# executed before the user's script. If the path points to a directory, all
+# the Sieve scripts contained therein (with the proper .sieve extension) are
+# executed. The order of execution within a directory is determined by the
+# file names, using a normal 8bit per-character comparison. Multiple script
+# file or directory paths can be specified by appending an increasing number.
+sieve_before = /usr/local/etc/dovecot/sieve/before.d
+#sieve_before2 =
+#sieve_before3 = (etc...)
+# ...
+# Which Sieve language extensions are available to users. By default, all
+# supported extensions are available, except for deprecated extensions or
+# those that are still under development. Some system administrators may want
+# to disable certain Sieve extensions or enable those that are not available
+# by default. This setting can use '+' and '-' to specify differences relative
+# to the default. For example `sieve_extensions = +imapflags' will enable the
+# deprecated imapflags extension in addition to all extensions were already
+# enabled by default.
+#sieve_extensions = +notify +imapflags
+sieve_extensions = +spamtest +spamtestplus
+
+sieve_spamtest_status_type = score
+# Rspamd output looks like: X-Spamd-Result: default: False [12.00 / 15.00]
+sieve_spamtest_status_header = X-Spamd-Result: default: [[:alnum:]]+ \[(-?[[:digit:]]+\.[[:digit:]]+) / -?[[:digit:]]+\.[[:digit:]]+\]
+sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digit:]]+\.[[:digit:]]+ / (-?[[:digit:]]+\.[[:digit:]]+)\]
+# ...
+```
+
+<p>
+    <strong>Line 8</strong> we ensure to define a <code>sieve_before</code>
+    directory (we'll get back to this later).
+<p>
+    <strong>Line 21</strong> we ensure to load both the <code>spamtest</code>
+    and <code>spamtestplus</code> sieve extensions.
+<p>
+    <strong>Lines 23 to 26</strong> is the interesting part of this
+    configuration.<br>
+    We set the <code>sieve_spamtest_status_type</code> to <code>score</code>,
+    meaning that we'll have a numeric score.<br>
+    Then, we infer the score from rspamd's <code>X-Spamd-Result</code> header:
+    <code>sieve_spamtest_status_header</code> is a regexp that should match the
+    email's spam score, and <code>sieve_spamtest_max_header</code> a regexp
+    matching what could be the maximum spam score for this email. We will then
+    be able from sieve to express our filters in percent of spam probability,
+    which make it very clear.
+<p>
+    For more infos on Dovecot's spamtest extensions, see
+    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">the official documentation</a>.
+
+<h2>before.d Sieve filters</h2>
+<p>
+    As configured before, any sieve script in
+    <code>/usr/local/etc/dovecot/sieve/before.d</code> will be run by Dovecot.
+    This let us write some default Sieve code that will be run on every
+    incoming emails, very handy.
+</p>
+
+```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
+require "spamtestplus";
+require "fileinto";
+require "relational";
+require "comparator-i;ascii-numeric";
+require "imap4flags";
+
+if spamtest :value "gt" :comparator "i;ascii-numeric" :percent "95" {
+    discard;
+    stop;
+} elsif spamtest :value "ge" :comparator "i;ascii-numeric" :percent "50" {
+    fileinto "Junk";
+    setflag "\\seen";
+    stop;
+}
+
+/* Other messages get filed into Inbox or to user's scripts */
+```
+
+<div class="alert alert-warning">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span> You need to be
+        sure to manually pre-compile the scripts specified by
+        <code>sieve_before</code> using the sievec tool:<br>
+    </p>
+<pre>% sudo sievec /usr/local/etc/dovecot/sieve/before.d</pre>
+</div>
+
+<p>
+    Now that we implemented the mechanism in Dovecot's Sieve configuration,
+    this part should be very straightforward. As you can see, my policy is very simple:
+</p>
+<ul>
+    <li>discard emails with a score superior to 95%,
+        <li>fill into the <code>Junk</code> folder emails with a score superior or equal to 50%.
+</ul>
+<p>
+    Of course YMMV and you can do some crazy stuff with sieve (tell me if you
+    do!), but theses are sane default I've been running for some years now.
+</p>
+<p>
+    That's it for now, have fun!
+</p>
