@@ -22,9 +22,11 @@
 #   ```{"lang": "ruby", "title": "The Classic"}
 #   puts "Hello World!"
 #   ```
+#
 # Hacking:
 #   If you want to hack this file and move it around be sure to check
 #   PYGMENTS_CACHE_DIR which is hardcoded below !
+
 class OctoHighlight < Nanoc::Filter
   require 'json'
 
