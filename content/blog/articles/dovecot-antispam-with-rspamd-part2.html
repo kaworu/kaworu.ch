@@ -3,6 +3,7 @@ kind: article
 navbar: Blog
 title: "Dovecot antispam with Rspamd (part 2)"
 created_at: 2015-10-12 16:45:52 +0200
+updated_at: 2015-10-12 23:09:47 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -11,16 +12,19 @@ tags: [sysadmin]
     <img class="no-border right" src="<%= static_url '/images/mail.png' %>" alt="email">
     <p>
         Ahoy !<br>
-        I realized that forgot about half of the Rspamd &amp; Dovecot in
+        I realized that forgot about half of the
+        <span class="brand">Rspamd</span> &amp;
+        <span class="brand">Dovecot</span> in
         <a href="<%= article_path 'dovecot-antispam-with-rspamd' %>">my last article</a>,
         so here is an attempt to correct this misstep.
     </p>
     <p>
-        In this article we'll configure Dovecot's Sieve to understand how
-        Rspamd assign spam score to emails. Then we'll implement policies to
-        reject or filter spam directly from sieve based on the spam score.
-        We'll use the <code>spamtest</code> and <code>spamtestplus</code> sieve
-        extensions both which are part of Dovecot.
+        In this article we'll configure <span class="brand">Dovecot</span>'s
+        Sieve to understand how <span class="brand">Rspamd</span> assign spam
+        score to emails. Then we'll implement policies to reject or filter spam
+        directly from sieve based on the spam score.  We'll use the
+        <code>spamtest</code> and <code>spamtestplus</code> sieve extensions
+        both which are part of <span class="brand">Dovecot</span>.
     <p>
 </div>
 
@@ -28,20 +32,23 @@ tags: [sysadmin]
 
 <p class="alert alert-info">
     <span class="glyphicon glyphicon-info-sign"></span>
-    This is the second part of the Dovecot &amp; Rspamd integration setup,
-    talking about mail filtering using
-    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>.
-    If you missed the first part about Rspamd autolearn integration with
-    <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>,
+    This is the second part of the
+    <span class="brand">Dovecot</span> &amp;
+    <span class="brand">Rspamd</span> integration setup, talking about mail
+    filtering using
+    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest"><span class="brand">Dovecot</span> spamtest</a>.
+    If you missed the first part about <span class="brand">Rspamd</span>
+    autolearn integration with
+    <a href="http://wiki2.dovecot.org/Plugins/Antispam"><span class="brand">Dovecot</span> antispam plugin</a>,
     you'll find it
     <a href="<%= article_path 'dovecot-antispam-with-rspamd' %>">here</a>.
 </p>
 
-<h2>Dovecot Sieve configuration</h2>
+<h2><span class="brand">Dovecot</span> Sieve configuration</h2>
 <p>
-    First we will configure Dovecot's Sieve to parse Rspamd
-    <code>X-Spamd-Result</code> header, so later we can filter from sieve based
-    on the email's spam "score".
+    First we will configure <span class="brand">Dovecot</span>'s Sieve to parse
+    <span class="brand">Rspamd</span> <code>X-Spamd-Result</code> header, so
+    later we can filter from sieve based on the email's spam "score".
 </p>
 ```{"title":"conf.d/90-sieve.conf"}
 # ...
@@ -84,22 +91,24 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
     configuration.<br>
     We set the <code>sieve_spamtest_status_type</code> to <code>score</code>,
     meaning that we'll have a numeric score.<br>
-    Then, we infer the score from rspamd's <code>X-Spamd-Result</code> header:
+    Then, we infer the score from <span class="brand">Rspamd</span>'s
+    <code>X-Spamd-Result</code> header:
     <code>sieve_spamtest_status_header</code> is a regexp that should match the
     email's spam score, and <code>sieve_spamtest_max_header</code> a regexp
     matching what could be the maximum spam score for this email. We will then
     be able from sieve to express our filters in percent of spam probability,
     which make it very clear.
 <p>
-    For more infos on Dovecot's spamtest extensions, see
+    For more infos on <span class="brand">Dovecot</span>'s spamtest extensions,
+    see
     <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">the official documentation</a>.
 
 <h2>before.d Sieve filters</h2>
 <p>
     As configured before, any sieve script in
-    <code>/usr/local/etc/dovecot/sieve/before.d</code> will be run by Dovecot.
-    This let us write some default Sieve code that will be run on every
-    incoming emails, very handy.
+    <span class="path">/usr/local/etc/dovecot/sieve/before.d</span> will be run
+    by <span class="brand">Dovecot</span>.  This let us write some default
+    Sieve code that will be run on every incoming emails, very handy.
 </p>
 
 ```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
@@ -131,8 +140,9 @@ if spamtest :value "gt" :comparator "i;ascii-numeric" :percent "95" {
 </div>
 
 <p>
-    Now that we implemented the mechanism in Dovecot's Sieve configuration,
-    this part should be very straightforward. As you can see, my policy is very simple:
+    Now that we implemented the mechanism in
+    <span class="brand">Dovecot</span>'s Sieve configuration, this part should
+    be very straightforward. As you can see, my policy is very simple:
 </p>
 <ul>
     <li>discard emails with a score superior to 95%,

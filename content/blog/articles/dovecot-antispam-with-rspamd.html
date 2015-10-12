@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Dovecot antispam with Rspamd (part 1)"
 created_at: 2014-03-25 20:00:47 +0100
-updated_at: 2015-10-12 16:45:52 +0200
+updated_at: 2015-10-12 23:09:47 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -31,7 +31,7 @@ tags: [sysadmin]
 
     <p>
         In this post I'll provide my configuration for a nice integration with
-        the <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>.
+        the <a href="http://wiki2.dovecot.org/Plugins/Antispam"><span class="brand">Dovecot</span> antispam plugin</a>.
 </div>
 
 <!-- more -->
@@ -39,12 +39,13 @@ tags: [sysadmin]
 <div class="alert alert-info">
     <p>
         <span class="glyphicon glyphicon-info-sign"></span>
-        This is the first part of the Dovecot &amp; Rspamd integration setup,
-        talking about Rspamd autolearn integration with
-        <a href="http://wiki2.dovecot.org/Plugins/Antispam">Dovecot antispam plugin</a>.
+        This is the first part of the <span class="brand">Dovecot</span> &amp;
+        <span class="brand">Rspamd</span> integration setup, talking about
+        <span class="brand">Rspamd</span> autolearn integration with
+        <a href="http://wiki2.dovecot.org/Plugins/Antispam"><span class="brand">Dovecot</span> antispam plugin</a>.
     <p>
         Part 2 about mail filtering using
-        <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>
+        <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest"><span class="brand">Dovecot</span> spamtest</a>
         is
         <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">here</a>.
 </div>
@@ -91,22 +92,24 @@ plugin {
 
 <p>
     So every time a user gets a spam into its <code>Inbox</code>, moving it
-    into <code>Junk</code> will make <span class="brand">rspamd</span> learn it
+    into <code>Junk</code> will make <span class="brand">Rspamd</span> learn it
     as spam (and hopefully filter it better the next time).  Every time someone
     gets a desired email into <code>Junk</code>, moving it into its
-    <code>Inbox</code> (or else) will make rspamd learn it as ham.
+    <code>Inbox</code> (or else) will make <span class="brand">Rspamd</span>
+    learn it as ham.
 
 <p>
     This is not perfect for all needs though. As you can see I use a
     system-wide spam/ham database, so choices from one user does effectively
-    affect how rspamd filter mail for every users.
+    affect how <span class="brand">Rspamd</span> filter mail for every users.
 
 
 <h2>Notes</h2>
 
 <p>
-    Be sure to adapt the rspamd password to the one you've choosen while
-    configuring rspamd. I've left the default password <code>q1</code> in this
+    Be sure to adapt the <span class="brand">Rspamd</span> password to the one
+    you've choosen while configuring <span class="brand">Rspamd</span>. I've
+    left the default password <code>q1</code> in this
     example. Also check where <span class="manpage">rspamc(1)</span> is
     installed (in my case it is <span class="path">/usr/local/bin</span>).
 
@@ -117,7 +120,8 @@ plugin {
     debugging because of that.
 
 <p>
-    If you need help or want to know more about rspamd, check
+    If you need help or want to know more about
+    <span class="brand">Rspamd</span>, check
     <a href="https://rspamd.com/">the website</a> or join <kbd>#rspamd</kbd> on
     freenode :D
 
@@ -125,4 +129,4 @@ plugin {
     Check out
     <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">part 2</a>
     about mail filtering using
-    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">Dovecot spamtest</a>.
+    <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest"><span class="brand">Dovecot</span> spamtest</a>.
