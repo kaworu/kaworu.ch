@@ -30,14 +30,14 @@
     <body>
         <a href="#content" class="sr-only sr-only-focusable">Skip to main content</a>
         <div id="wrap">
-            <header role="banner">
+            <header id="page-header">
                 <div class="container hidden-xs">
-                    <h1>
+                    <h2 id="site-title">
                         <a href="/" title="Homepage"><%= @config[:subtitle] %></a>
                         <small><%= @config[:title] %></small>
-                    </h1>
+                    </h2>
                 </div>
-                <nav class="navbar navbar-default" role="navigation">
+                <nav class="navbar navbar-default">
                     <div class="container">
                         <div class="navbar-header">
                             <button type="button" class="navbar-toggle" title="toggle navbar" data-toggle="collapse" data-target=".navbar-collapse">
@@ -108,7 +108,7 @@
             </div>
         </div>
 
-        <footer role="contentinfo">
+        <footer id="page-footer">
             <div class="container">
                 <p class="text-muted credits">
                     Copyright &copy; <%= Time.now.year %> — <%= @config[:author_name] %><br>

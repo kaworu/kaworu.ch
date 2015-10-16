@@ -6,7 +6,7 @@
         <meta itemprop="description" content="<%= h @config[:description] %>">
         <meta itemprop="url"         content="<%= @config[:base_url] %>">
 
-        <article role="article" class="hentry" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <article class="hentry" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
             <meta itemprop="url" content="<%= canonical_url %>">
 
             <% unless @item[:no_page_header] %>

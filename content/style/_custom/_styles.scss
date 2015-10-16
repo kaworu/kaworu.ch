@@ -15,7 +15,7 @@ html, body {
 }
 
 /* Set the fixed height of the footer here */
-footer[role=contentinfo] {
+#page-footer {
     height: 60px;
 }
 
@@ -25,7 +25,8 @@ footer[role=contentinfo] {
 }
 
 /* spoon ! */
-header[role=banner] h1 {
+#site-title {
+    font-size: 36px;
     margin-top: 0;
     padding-top: 38px;
     background: transparent url(/images/spoon.jpg) no-repeat right bottom;
@@ -45,7 +46,7 @@ header[role=banner] h1 {
 }
 
 /* GitHub navbar link */
-#github-navbar-link {
+#page-header #github-navbar-link {
     padding-top: 0.9em;
     padding-bottom: 0;
     img {
