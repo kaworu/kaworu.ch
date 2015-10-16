@@ -41,7 +41,7 @@
               <span class="glyphicon glyphicon-tags"></span> 
               <span class="tags">
               <% for tag in article[:tags] do %>
-                  <a class="tag label label-primary" href="#"><%= h tag %></a>
+                  <a class="tag label label-primary" href="<%= tag_path tag %>"><%= h tag %></a>
               <% end %>
               </span>
               <% end %>
