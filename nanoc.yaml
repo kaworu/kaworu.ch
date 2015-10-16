@@ -108,6 +108,9 @@ subscribe_rss: true
 simple_search: https://duckduckgo.com
 # Google Analytics
 google_analytics_tracking_id: UA-40868430-1
+# Piwik (no trailing slash)
+piwik_host: https://piwik.kaworu.ch
+piwik_idsite: 1
 # Disqus Comments
 disqus_short_name: forkwhilefork
 # GitHub

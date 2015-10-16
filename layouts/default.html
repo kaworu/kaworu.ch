@@ -122,5 +122,6 @@
         <!-- at last, Javascript stuff -->
         <script src="<%= @items['/static/assets/bootstrap/js/bootstrap.min.js/'].path %>"></script>
         <script src="<%= @items['/static/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js/'].path %>"></script>
+        <%= render '_piwik', :host => @config[:piwik_host], :siteid => @config[:piwik_idsite] %>
     </body>
 </html>
