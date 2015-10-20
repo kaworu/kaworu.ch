@@ -21,10 +21,9 @@ tags: [sysadmin]
     <p>
         In this article we'll configure <span class="brand">Dovecot</span>'s
         Sieve to understand how <span class="brand">Rspamd</span> assign spam
-        score to emails. Then we'll implement policies to reject or filter spam
-        directly from sieve based on the spam score.  We'll use the
-        <code>spamtest</code> and <code>spamtestplus</code> sieve extensions
-        both which are part of <span class="brand">Dovecot</span>.
+        score and headers to emails. Then, we'll implement policies to reject
+        or filter spam from Sieve.  If needed, we'll use the
+        <code>spamtest</code> and <code>spamtestplus</code> Sieve extensions.
     <p>
 </div>
 
@@ -48,7 +47,7 @@ tags: [sysadmin]
 <p>
     First we will configure <span class="brand">Dovecot</span>'s Sieve to parse
     <span class="brand">Rspamd</span> <code>X-Spamd-Result</code> header, so
-    later we can filter from sieve based on the email's spam "score".
+    later we may filter from Sieve based on the email's spam "score".
 </p>
 ```{"title":"conf.d/90-sieve.conf"}
 # ...
@@ -85,9 +84,9 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
     directory (we'll get back to this later).
 <p>
     <strong>Line 21</strong> we ensure to load both the <code>spamtest</code>
-    and <code>spamtestplus</code> sieve extensions.
+    and <code>spamtestplus</code> Sieve extensions.
 <p>
-    <strong>Lines 23 to 26</strong> is the interesting part of this
+    <strong>Lines 23 to 26</strong> is the most interesting part of this
     configuration.<br>
     We set the <code>sieve_spamtest_status_type</code> to <code>score</code>,
     meaning that we'll have a numeric score.<br>
@@ -96,8 +95,8 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
     <code>sieve_spamtest_status_header</code> is a regexp that should match the
     email's spam score, and <code>sieve_spamtest_max_header</code> a regexp
     matching what could be the maximum spam score for this email. We will then
-    be able from sieve to express our filters in percent of spam probability,
-    which make it very clear.
+    be able from Sieve to express our filters in percent of spam probability if
+    we want to.
 <p>
     For more infos on <span class="brand">Dovecot</span>'s spamtest extensions,
     see
@@ -105,11 +104,41 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
 
 <h2>before.d Sieve filters</h2>
 <p>
-    As configured before, any sieve script in
+    As configured before, any Sieve script in
     <span class="path">/usr/local/etc/dovecot/sieve/before.d</span> will be run
     by <span class="brand">Dovecot</span>.  This let us write some default
     Sieve code that will be run on every incoming emails, very handy.
 </p>
+<div class="alert alert-warning">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span> You need to be
+        sure to manually pre-compile the scripts specified by
+        <code>sieve_before</code> after any changes using the sievec tool:
+    </p>
+    <pre style="margin-top:0.3em"># sudo sievec /usr/local/etc/dovecot/sieve/before.d</pre>
+</div>
+
+<h3>a simple example</h3>
+```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
+require "fileinto";
+require "imap4flags";
+
+if header :is "X-Spam" "Yes" {
+    fileinto "Junk";
+    setflag "\\seen";
+    stop;
+}
+
+/* Other messages get filed into Inbox or to user's scripts */
+```
+
+<p>
+    Here we rely on the <code>X-Spam</code> header, which is the result of the
+    <code>add_header</code> action. This way let us handle the threshold from
+    the <span class="brand">Rspamd</span> configuration.
+</p>
+
+<h3>a less simple example</h3>
 
 ```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
 require "spamtestplus";
@@ -130,28 +159,22 @@ if spamtest :value "gt" :comparator "i;ascii-numeric" :percent "95" {
 /* Other messages get filed into Inbox or to user's scripts */
 ```
 
-<div class="alert alert-warning">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span> You need to be
-        sure to manually pre-compile the scripts specified by
-        <code>sieve_before</code> using the sievec tool:<br>
-    </p>
-<pre>% sudo sievec /usr/local/etc/dovecot/sieve/before.d</pre>
-</div>
-
 <p>
-    Now that we implemented the mechanism in
-    <span class="brand">Dovecot</span>'s Sieve configuration, this part should
-    be very straightforward. As you can see, my policy is very simple:
+    This example make full use of the <code>spamtest</code> parsing we
+    configured earlier:
 </p>
 <ul>
-    <li>discard emails with a score superior to 95%,
-        <li>fill into the <code>Junk</code> folder emails with a score superior or equal to 50%.
+    <li>
+        discard emails with a score superior to 95%,
+    <li>
+        deliver into the <code>Junk</code> folder emails with a score superior
+        or equal to 50%.
 </ul>
 <p>
-    Of course YMMV and you can do some crazy stuff with sieve (tell me if you
-    do!), but theses are sane default I've been running for some years now.
+    Of course YMMV, and this method let you do some crazy stuff with Sieve
+    (tell me if you do!).
 </p>
+
 <p>
     That's it for now, have fun!
 </p>
