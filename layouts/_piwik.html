@@ -1,10 +1,10 @@
-<% if @host and @siteid %><!-- Piwik -->
+<% if @url and @siteid %><!-- Piwik -->
         <script type="text/javascript">
             var _paq = _paq || [];
             _paq.push(['trackPageView']);
             _paq.push(['enableLinkTracking']);
             (function() {
-                var u="<%= @host %>/";
+                var u="<%= @url %>/";
                 _paq.push(['setTrackerUrl', u+'piwik.php']);
                 _paq.push(['setSiteId', <%= @siteid.to_i %>]);
                 var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
