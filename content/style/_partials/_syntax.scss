@@ -31,7 +31,7 @@ figcaption + .highlight {
     text-shadow: darken($base02, 10) 0 -1px;
   }
   span { color: $base01 !important; }
-  padding: 1em .8em .8em .8em;
+  padding: .7em .8em .8em .8em;
   @include border-radius(0);
 }
 .gist-file .highlight .line-numbers {
