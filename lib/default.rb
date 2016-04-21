@@ -23,7 +23,7 @@ end
 
 # shortcut for static stuff
 def static_url(path)
-  @config[:base_url] + @items['/static' + path + '/'].path
+  canonical_url(@items['/static' + path + '/'])
 end
 
 def article_path(id)
@@ -36,17 +36,17 @@ end
 
 # HTML content & prettify helpers
 
-def html_title
-  if @item[:title]
-    "#{@item[:title]} — #{@config[:title]}"
+def html_title(item=@item)
+  if item[:title]
+    "#{item[:title]} — #{@config[:title]}"
   else
     @config[:title]
   end
 end
 
-def item_author(item)
-  uri  = (@item[:author_uri]  || @config[:author_uri])
-  name = (@item[:author_name] || @config[:author_name])
+def item_author(item=@item)
+  uri  = (item[:author_uri]  || @config[:author_uri])
+  name = (item[:author_name] || @config[:author_name])
   uri ? '<a href="%s">%s</a>' % [h(uri), h(name)] : h(name)
 end
 
