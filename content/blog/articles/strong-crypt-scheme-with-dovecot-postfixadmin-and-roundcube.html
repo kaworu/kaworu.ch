@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Strong crypt scheme with Dovecot, Postfixadmin and Roundcube"
 created_at: 2016-04-20 19:31:37 +0200
-updated_at: 2016-04-21 13:34:30 +0200
+updated_at: 2016-04-21 15:38:13 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -51,7 +51,7 @@ tags: [sysadmin]
     on the system's libc.
 </p>
 ```{"linenos":false}
-% doveadm pw -s BLF-CRYPT -p test
+% doveadm pw -s BLF-CRYPT -p secret
 ```
 <p>
     If you get something like:
@@ -83,7 +83,7 @@ Fatal: Unknown scheme: BLF-CRYPT
     until happy):
 </p>
 ```{"linenos":false}
-% /usr/bin/time doveadm pw -s BLF-CRYPT -r 12 -p test
+% /usr/bin/time doveadm pw -s BLF-CRYPT -r 12 -p secret
 {BLF-CRYPT}$2a$12$Y7ai9J06MhusOmJ0r/0nB.Aok4gts53SCDx/pZLN0FwjS09BBRWPa
         0.30 real         0.30 user         0.00 sys
 ```
@@ -156,7 +156,7 @@ SELECT password FROM admin LIMIT 1;
     <span class="brand">Dovecot</span> prefix it. The prefix should be easy to
     guess knowing the scheme name (for MD5 it is <strong>MD5-CRYPT</strong>),
     you can check by running
-    <kbd>doveadm pw -s CRYPT-NAME-TO-TEST -p test</kbd>
+    <kbd>doveadm pw -s CRYPT-NAME-TO-TEST -p secret</kbd>
     and see if the result looks like the corresponding Wikipedia's example.
     Again, the full list of scheme supported by
     <span class="brand">Dovecot</span> <kbd>doveadm pw -l</kbd> may be helpful.
