@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Dovecot antispam with Rspamd (part 1)"
 created_at: 2014-03-25 20:00:47 +0100
-updated_at: 2015-10-12 23:09:47 +0200
+updated_at: 2016-04-26 15:39:20 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -50,16 +50,74 @@ tags: [sysadmin]
         <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">here</a>.
 </div>
 
-<p class="alert alert-warning">
-    <span class="glyphicon glyphicon-warning-sign"></span>
-    If you're planning to use <span class="brand">Rspamd</span> under FreeBSD
-    be sure to  check the main
-    <a href="https://rspamd.com/blog/">website news</a> before upgrades. In my
-    experience there has been configuration breaks that were not advertised in
-    UPDATING as one would expect.
+<h2>Figuring out your dovecot antispam plugin version</h2>
+<p>
+    There are two versions of the <span class="brand">Dovecot</span> antispam
+    plugin:
+</p>
+<ol>
+    <li>
+        <a href="https://johannes.sipsolutions.net/Projects/dovecot-antispam">the <strong>original</strong> one written by Johannes Berg</a>;
+    </li>
+    <li>
+        <a href="http://hg.dovecot.org/dovecot-antispam-plugin">a <strong>fork</strong> by Eugene Paskevich</a>.
+    </li>
+</ol>
+
+<p>
+    The configuration differ slightly between the two, so you need to find
+    out which one you have installed
+    (for info <span class="brand">Debian</span>
+    <a href="https://packages.debian.org/jessie/dovecot-antispam">package the <strong>original</strong></a>,
+    while <span class="brand">FreeBSD</span>
+    <a href="https://svnweb.freebsd.org/ports/head/mail/dovecot2-antispam-plugin/">package the <strong>fork</strong></a>).
+</p>
+<p>
+    run <kbd>man dovecot-antispam</kbd> and check the end of the man page. If
+    it contains something like:
+</p>
+<pre>
+    <strong>THIS FORK AUTHOR AND MAINTAINER</strong>
+        o  Eugene Paskevich &lt;eugene@raptor.kiev.ua&gt;.
+</pre>
+<p>
+    Then you have the <strong>fork</strong> version, otherwise it is the <strong>original</strong>.
 </p>
 
-```{"title":"conf.d/90-plugin.conf"}
+<h2><span class="brand">Dovecot</span> configuration</h2>
+<p>
+    Add the <strong>antispam</strong> mail plugin to the relevant part of the
+    imap configuration:
+</p>
+```{"title":"conf.d/20-imap.conf"}
+protocol imap {
+  # ...
+  # Space separated list of plugins to load (default is global mail_plugins).
+  #mail_plugins = $mail_plugins
+  mail_plugins = $mail_plugins antispam
+  # ...
+}
+```
+<p>
+    Then configure the plugin (pick your matching version):
+</p>
+<div class="clearfix">
+    <div class="row">
+        <div class="col-md-6">
+```{"title":"conf.d/90-plugin.conf (original version)"}
+plugin {
+    antispam_backend = pipe
+    antispam_spam    = Junk
+    antispam_trash   = Trash
+    antispam_mail_sendmail = /usr/local/bin/rspamc
+    antispam_mail_spam     = learn_spam
+    antispam_mail_notspam  = learn_ham
+    antispam_mail_sendmail_args = -h;localhost:11334;-P;q1
+}
+```
+        </div>
+        <div class="col-md-6">
+```{"title":"conf.d/90-plugin.conf (fork version)"}
 plugin {
     antispam_backend = mailtrain
     antispam_spam    = Junk
@@ -70,6 +128,22 @@ plugin {
     antispam_mail_sendmail_args = -h;localhost:11334;-P;q1
 }
 ```
+        </div>
+    </div>
+</div>
+<div class="codeblock-comment alert alert-info">
+    <ol>
+        <li value="2">
+            This is the part that differ between the <strong>original</strong>
+            (pipe) and <strong>fork</strong> (mailtrain) version.
+        </li>
+        <li value="5">
+            YMMV, adapt the <span class="manpage">rspamc(1)</span> executable
+            path (<span class="filename">/usr/local/bin/rspamc</span> in this
+            example).
+        </li>
+    </ol>
+</div>
 
 <p>What this configuration does is: </p>
 
@@ -110,13 +184,11 @@ plugin {
     Be sure to adapt the <span class="brand">Rspamd</span> password to the one
     you've choosen while configuring <span class="brand">Rspamd</span>. I've
     left the default password <code>q1</code> in this
-    example. Also check where <span class="manpage">rspamc(1)</span> is
-    installed (in my case it is <span class="path">/usr/local/bin</span>).
-
+    example.
 <p>
-    If you need to hack this configuration be careful with the
-    <code>antispam_mail_sendmail_args</code>: it uses the </code>;</code>
-    separator for arguments. I remember having a lot of troubles while
+    Be extra careful if you need to tweak
+    <code>antispam_mail_sendmail_args</code>: it uses </code>;</code>
+    as separator for arguments. I remember having a lot of troubles while
     debugging because of that.
 
 <p>
