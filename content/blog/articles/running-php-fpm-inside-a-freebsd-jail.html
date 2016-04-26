@@ -39,12 +39,22 @@ upstream princesse-bulldozer-php-fpm {
     }
 }
 ```
+<div class="codeblock-comment alert alert-info">
+    <ol>
+        <li value="8">
+            As <span class="brand">nginx</span> is run from the host, using the
+            "full" path as <code>root</code> is correct.
+        </li>
+        <li value="15">
+            Since php-fpm is jailed, the <code>SCRIPT_FILENAME</code> path
+            should not use <code>$document_root</code>…
+        </li>
+        <li value="16">
+            … but use the "jailed" path instead.
+        </li>
+    </ol>
+</div>
 
 <p>
-    As <span class="brand">nginx</span> is run from the host, using the "full"
-    path as <code>root</code> (line 8) is correct. But since php-fpm is jailed,
-    the <code>SCRIPT_FILENAME</code> path should not use
-    <code>$document_root</code> (see line 15 which does not work). It has to be
-    set to the "jailed" path (line 16). Hope it can avoid a couple of painful
-    debugging out there :)
-
+    Hope it can avoid a couple of painful debugging out there :)
+</p>
