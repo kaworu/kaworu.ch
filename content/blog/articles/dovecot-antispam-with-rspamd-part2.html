@@ -78,25 +78,34 @@ sieve_spamtest_status_header = X-Spamd-Result: default: [[:alnum:]]+ \[(-?[[:dig
 sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digit:]]+\.[[:digit:]]+ / (-?[[:digit:]]+\.[[:digit:]]+)\]
 # ...
 ```
-
-<p>
-    <strong>Line 8</strong> we ensure to define a <code>sieve_before</code>
-    directory (we'll get back to this later).
-<p>
-    <strong>Line 21</strong> we ensure to load both the <code>spamtest</code>
-    and <code>spamtestplus</code> Sieve extensions.
-<p>
-    <strong>Lines 23 to 26</strong> is the most interesting part of this
-    configuration.<br>
-    We set the <code>sieve_spamtest_status_type</code> to <code>score</code>,
-    meaning that we'll have a numeric score.<br>
-    Then, we infer the score from <span class="brand">Rspamd</span>'s
-    <code>X-Spamd-Result</code> header:
-    <code>sieve_spamtest_status_header</code> is a regexp that should match the
-    email's spam score, and <code>sieve_spamtest_max_header</code> a regexp
-    matching what could be the maximum spam score for this email. We will then
-    be able from Sieve to express our filters in percent of spam probability if
-    we want to.
+<div class="codeblock-comment alert alert-info">
+    <ol>
+        <li value="8">
+             Define a <code>sieve_before</code> directory (we'll get back to
+             this later).
+        </li>
+        <li value="21">
+            Load both the <code>spamtest</code> and <code>spamtestplus</code>
+            Sieve extensions.
+        </li>
+        <li value="23">
+            We set the <code>sieve_spamtest_status_type</code> to
+            <code>score</code>, meaning that we'll have a numeric score.
+        </li>
+        <li value="25">
+            Then, we infer the score from <span class="brand">Rspamd</span>'s
+            <code>X-Spamd-Result</code> header:
+            <code>sieve_spamtest_status_header</code> is a regexp that should match the
+            email's spam score…
+        </li>
+        <li value="26">
+            … and <code>sieve_spamtest_max_header</code> a regexp matching what
+            could be the maximum spam score for this email. We will then be
+            able from Sieve to express our filters in percent of spam
+            probability if we want to.
+        </li>
+    </ol>
+</div>
 <p>
     For more infos on <span class="brand">Dovecot</span>'s spamtest extensions,
     see
