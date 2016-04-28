@@ -4,11 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport"  content="width=device-width">
 
-        <title><%= html_title %></title>
-
+        <meta name="language"  content="en">
         <meta name="author"    content="<%= @config[:author_name] %>">
         <meta name="generator" content="nanoc <%= Nanoc::VERSION %>">
-        <meta name="language"  content="en">
+
+        <title><%= html_title %></title>
 
         <link rel="icon"       type="image/png"  href="<%= @items['/favicon/'].path %>">
         <link rel="author"     type="text/plain" href="<%= @items['/humans/'].path %>">
