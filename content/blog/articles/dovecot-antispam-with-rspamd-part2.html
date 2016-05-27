@@ -46,7 +46,7 @@ tags: [sysadmin]
 <h2><span class="brand">Dovecot</span> Sieve configuration</h2>
 <p>
     First we will configure <span class="brand">Dovecot</span>'s Sieve to parse
-    <span class="brand">Rspamd</span> <code>X-Spamd-Result</code> header, so
+    <span class="brand">Rspamd</span> <code>X‑Spamd‑Result</code> header, so
     later we may filter from Sieve based on the email's spam "score".
 </p>
 ```{"title":"conf.d/90-sieve.conf"}
@@ -94,7 +94,7 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
         </li>
         <li value="25">
             Then, we infer the score from <span class="brand">Rspamd</span>'s
-            <code>X-Spamd-Result</code> header:
+            <code>X‑Spamd‑Result</code> header:
             <code>sieve_spamtest_status_header</code> is a regexp that should match the
             email's spam score…
         </li>
