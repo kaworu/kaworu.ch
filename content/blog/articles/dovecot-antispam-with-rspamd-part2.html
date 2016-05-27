@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Dovecot antispam with Rspamd (part 2)"
 created_at: 2015-10-12 16:45:52 +0200
-updated_at: 2015-10-20 22:41:58 +0200
+updated_at: 2016-05-27 11:36:36 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -110,6 +110,18 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
     For more infos on <span class="brand">Dovecot</span>'s spamtest extensions,
     see
     <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest">the official documentation</a>.
+</p>
+<div class="alert alert-warning">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span>
+        When using
+        <a href="https://rspamd.com/rmilter/"><span class="brand">Rmilter</span></a>
+        You need to have <code>extended_spam_headers = yes</code> in the
+        <code>spamd</code> section of
+        <span class="filename">rmilter.conf</span> (otherwise you won't have
+        the <code>X‑Spamd‑Result</code> header).
+    </p>
+</div>
 
 <h2>before.d Sieve filters</h2>
 <p>
