@@ -73,7 +73,7 @@
                     <% end %>
                     <% if next_nav %>
                         <li class="next">
-                            <a href="<%= next_nav %>" title="Next Post: <%= h next_nav[:title] %>"><%= h next_nav[:title] %>&nbsp;&raquo;</a>
+                            <a href="<%= next_nav.path %>" title="Next Post: <%= h next_nav[:title] %>"><%= h next_nav[:title] %>&nbsp;&raquo;</a>
                         </li>
                     <% end %>
                 </ul>
