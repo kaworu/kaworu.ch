@@ -7,7 +7,7 @@
         <meta itemprop="url"         content="<%= @config[:base_url] %>">
 
         <article class="hentry" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-            <meta itemprop="url" content="<%= canonical_url %>">
+            <meta itemprop="url" content="<%= item_canonical_url @item %>">
 
             <% unless @item[:no_page_header] %>
                 <header class="page-header">

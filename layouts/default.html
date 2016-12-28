@@ -12,7 +12,7 @@
 
         <link rel="icon"       type="image/png"  href="<%= @items['/favicon.*'].path %>">
         <link rel="author"     type="text/plain" href="<%= @items['/humans.*'].path %>">
-        <link rel="canonical"  type="text/html"  href="<%= canonical_url %>">
+        <link rel="canonical"  type="text/html"  href="<%= item_canonical_url @item %>">
         <link rel="license"    type="text/html"  href="https://creativecommons.org/licenses/by/4.0/">
         <link rel="alternate"  type="application/atom+xml" href="<%= @items['/atom.*'].path %>" title="<%= @config[:title] %>">
 
@@ -24,7 +24,7 @@
         <script src="<%= @items['/static/assets/jquery/jquery-2.2.3.min.js'].path %>"></script>
 
         <%= render '/_google_analytics.*', :tracking_id => @config[:google_analytics_tracking_id] %>
-        <%= render('/_disqus.*', :short_name => @config[:disqus_short_name], :id => canonical_url) if @config[:disqus_short_name] and @item[:comments] %>
+        <%= render('/_disqus.*', :short_name => @config[:disqus_short_name], :id => item_canonical_url(@item)) if @config[:disqus_short_name] and @item[:comments] %>
         <%= render '/_fancy_box.*' %>
     </head>
 

@@ -17,13 +17,17 @@ end
 #
 # paths & URLs helpers
 
-def canonical_url(item=@item)
+def item_canonical_url(item=@item)
   @config[:base_url] + item.path
+end
+
+def canonical_url path
+  item_canonical_url @items[path]
 end
 
 # shortcut for static stuff
 def static_url(path)
-  canonical_url(@items['/static' + path])
+  canonical_url "/static#{path}"
 end
 
 def article_path(id)
@@ -74,7 +78,7 @@ end
 def include_code(file, options)
   fn = "content/static/code/#{file}" # XXX: hardcoded local path
   STDERR.puts fn
-  options['href'] ||= canonical_url(@items[fn.sub(/\Acontent/, '')])
+  options['href'] ||= static_url("/code/#{file}")
   "```%s\n%s```" % [options.to_json, File.read(fn)]
 end
 
