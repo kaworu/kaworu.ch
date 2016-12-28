@@ -29,15 +29,19 @@ prune:
   # .git, .svn etc.
   exclude: [ '.git', '.hg', '.svn', 'CVS' ]
 
+# see https://nanoc.ws/doc/nanoc-4-upgrade-guide/
+string_pattern_type: glob
+
 # The data sources where nanoc loads its data from. This is an array of
 # hashes; each array element represents a single data source. By default,
 # there is only a single data source that reads data from the “content/” and
 # “layout/” directories in the site directory.
 data_sources:
   -
+    identifier_type: full
     # The type is the identifier of the data source. By default, this will be
     # `filesystem_unified`.
-    type: filesystem_unified
+    type: filesystem
 
     # The path where items should be mounted (comparable to mount points in
     # Unix-like systems). This is “/” by default, meaning that items will have
@@ -61,8 +65,12 @@ data_sources:
     # The encoding to use for input files. If your input files are not in
     # UTF-8 (which they should be!), change this.
     encoding: utf-8
-  - type:         static
-    items_root:   /static/
+  -
+    identifier_type: full
+    type:         filesystem
+    items_root:   /static
+    content_dir: static
+    layout_dir: null
 
 # Configuration for the “check” command, which run unit tests on the site.
 checks:

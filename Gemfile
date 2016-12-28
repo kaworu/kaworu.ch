@@ -6,10 +6,10 @@ gem 'pygments.rb' # for syntax highlighting
 gem 'compass'     # for advanced CSS
 gem 'guard'       # for automatic recompilation
 gem 'guard-nanoc' # for automatic recompilation
-gem 'nanoc', '= 3.8.0'
+gem 'nanoc', '~> 4.0'
 gem 'nokogiri'    # for parsing HTML
 gem 'rake'
-gem 'sass', '~> 3.2.13'
+gem 'sass'
 gem 'systemu'     # for invoking rsync etc
 
 # for guard

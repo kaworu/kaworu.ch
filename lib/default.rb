@@ -23,7 +23,7 @@ end
 
 # shortcut for static stuff
 def static_url(path)
-  canonical_url(@items['/static' + path + '/'])
+  canonical_url(@items['/static' + path + ".*"])
 end
 
 def article_path(id)
@@ -65,7 +65,7 @@ end
 # borrowed and hacked from Octopress
 def include_code(file, options)
   fn = "static/code/#{file}" # XXX: hardcoded local path
-  options['href'] ||= canonical_url(@items["/#{fn}/"])
+  options['href'] ||= canonical_url(@items["/#{fn}.*"])
   "```%s\n%s```" % [options.to_json, File.read(fn)]
 end
 
@@ -117,7 +117,7 @@ class Time
   end
 end
 
-class Fixnum
+class Integer
     # stolen from the humanize gem :)
     SUB_ONE_HUNDRED = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one', 'thirty-two', 'thirty-three', 'thirty-four', 'thirty-five', 'thirty-six', 'thirty-seven', 'thirty-eight', 'thirty-nine', 'forty', 'forty-one', 'forty-two', 'forty-three', 'forty-four', 'forty-five', 'forty-six', 'forty-seven', 'forty-eight', 'forty-nine', 'fifty', 'fifty-one', 'fifty-two', 'fifty-three', 'fifty-four', 'fifty-five', 'fifty-six', 'fifty-seven', 'fifty-eight', 'fifty-nine', 'sixty', 'sixty-one', 'sixty-two', 'sixty-three', 'sixty-four', 'sixty-five', 'sixty-six', 'sixty-seven', 'sixty-eight', 'sixty-nine', 'seventy', 'seventy-one', 'seventy-two', 'seventy-three', 'seventy-four', 'seventy-five', 'seventy-six', 'seventy-seven', 'seventy-eight', 'seventy-nine', 'eighty', 'eighty-one', 'eighty-two', 'eighty-three', 'eighty-four', 'eighty-five', 'eighty-six', 'eighty-seven', 'eighty-eight', 'eighty-nine', 'ninety', 'ninety-one', 'ninety-two', 'ninety-three', 'ninety-four', 'ninety-five', 'ninety-six', 'ninety-seven', 'ninety-eight', 'ninety-nine', 'one hundred']
 

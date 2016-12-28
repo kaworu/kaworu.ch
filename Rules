@@ -1,17 +1,4 @@
 #!/usr/bin/env ruby
-# A few helpful tips about the Rules file:
-#
-# * The string given to #compile and #route are matching patterns for
-#   identifiers--not for paths. Therefore, you can’t match on extension.
-#
-# * The order of rules is important: for each item, only the first matching
-#   rule is applied.
-#
-# * Item identifiers start and end with a slash (e.g. “/about/” for the file
-#   “content/about.html”). To select all children, grandchildren, … of an
-#   item, use the pattern “/about/*/”; “/about/*” will also select the parent,
-#   because “*” matches zero or more characters.
-
 require 'time'
 require 'compass'
 
@@ -35,8 +22,8 @@ preprocess do
       article_tags.each { |tag| (injected[tag] ||= Array.new) << article }
       injected
     end.each do |tag, articles|
-      @items << Nanoc::Item.new(
-        "<%= render '_blog_archives', articles: @item[:articles] %>",
+      @items.create(
+        "<%= render '/_blog_archives.*', articles: @item[:articles] %>",
         {
           navbar: 'Archives',
           title: "Tag: #{tag}",
@@ -54,8 +41,8 @@ preprocess do
     slices = sorted_articles.each_slice(@config[:paginate])
     slices.each_with_index.inject Array.new do |result, each|
       subarticles, i = each
-      @items << Nanoc::Item.new(
-        "<%= render '_blog_page', articles: @item[:articles] %>",
+      @items.create(
+        "<%= render '/_blog_page.*', articles: @item[:articles] %>",
         {
           navbar: 'Blog',
           kind: 'blog-page',
@@ -74,35 +61,35 @@ preprocess do
 end
 
 # favicon
-passthrough '/favicon/'
+passthrough '/favicon.*'
 
 # some exceptional files
-%w[/sitemap/ /robots/ /humans/ /atom/].each do |f|
+%w[/sitemap.* /robots.* /humans.* /atom.*]each do |f|
     compile f do
         filter :erb
     end
 end
 
 # static stuff
-compile '/static/*/' do
+compile '/static/**/*' do
     # nada
 end
-route '/static/*/' do # /static/foo.html/ → /foo.html
+route '/static/**/*' do # /static/foo.html/ → /foo.html
     item.identifier.to_s[7..-2]
 end
 
 # stylesheets
-ignore '/style/_*' # partials
+ignore '/style/**/_*' # partials
 compile '/style/screen/' do
     filter :sass, Compass.sass_engine_options
     filter :relativize_paths, :type => :css
 end
-route '/style/*/' do
-    "#{item.identifier.chop}.css"
+route '/style/**/*' do
+    "#{item.identifier.to_s.chop}.css"
 end
 
 # blog
-compile '/blog/articles/*' do
+compile '/blog/articles/**/*' do
   if item[:extension] =~ /^md|mkd|markdown$/
     filter :kramdown
   elsif item[:extension] == 'haml'
@@ -111,17 +98,17 @@ compile '/blog/articles/*' do
     filter :erb
   end
   filter :octohl
-  layout 'article'
-  layout 'default'
+  layout '/article.*'
+  layout '/default.*'
 end
-route '/blog/articles/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html
+route '/blog/articles/**/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html
     t = attribute_to_time item[:created_at]
-    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier}/index.html"
+    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier.to_s}/index.html"
 end
 
 # default Rules from here.
 
-compile '*' do
+compile '/**/*' do
     if item[:extension] == 'css'
         # don’t filter stylesheets
     elsif item.binary?
@@ -135,24 +122,37 @@ compile '*' do
         filter :erb
       #end
       filter :octohl
-      layout 'page'
-      layout 'default'
+      layout '/page.*'
+      layout '/default.*'
     end
 end
 
-route '*' do
+route '/**/index.*' do
+  # /projects/index.md gets written to /projects/index.html
+  item.identifier.without_ext + '.html'
+end
+
+compile '/static/**/*' do
+end
+
+route '/static/**/*' do
+  # /static/foo.html → /foo.html
+  item.identifier.to_s.sub(/\A\/static/, '')
+end
+
+route '/**/*' do
     if item[:extension] == 'css'
         # Write item with identifier /foo/ to /foo.css
-        item.identifier.chop + '.css'
+        item.identifier.to_s.chop + '.css'
     elsif item.binary?
         # Write item with identifier /foo/ to /foo.ext
-        item.identifier.chop + (item[:extension] ? '.' + item[:extension] : '')
+        item.identifier.to_s.chop + (item[:extension] ? '.' + item[:extension] : '')
     elsif item[:path]
         item[:path]
     else
         # Write item with identifier /foo/ to /foo/index.html
-        item.identifier + 'index.html'
+        "/" + item.identifier.without_ext + 'index.html'
     end
 end
 
-layout '*', :erb
+layout '/**/*', :erb

@@ -10,22 +10,22 @@
 
         <title><%= html_title %></title>
 
-        <link rel="icon"       type="image/png"  href="<%= @items['/favicon/'].path %>">
-        <link rel="author"     type="text/plain" href="<%= @items['/humans/'].path %>">
+        <link rel="icon"       type="image/png"  href="<%= @items['/favicon.*'].path %>">
+        <link rel="author"     type="text/plain" href="<%= @items['/humans.*'].path %>">
         <link rel="canonical"  type="text/html"  href="<%= canonical_url %>">
         <link rel="license"    type="text/html"  href="https://creativecommons.org/licenses/by/4.0/">
-        <link rel="alternate"  type="application/atom+xml" href="<%= @items['/atom/'].path %>" title="<%= @config[:title] %>">
+        <link rel="alternate"  type="application/atom+xml" href="<%= @items['/atom.*'].path %>" title="<%= @config[:title] %>">
 
-        <link rel="stylesheet" type="text/css" href="<%= @items['/static/assets/bootstrap/css/bootstrap.min.css/'].path %>">
-        <link rel="stylesheet" type="text/css" href="<%= @items['/static/assets/fancyBox-2.1.5/source/jquery.fancybox.css/'].path %>">
-        <link rel="stylesheet" type="text/css" href="<%= @items['/style/screen/'].path %>" media="screen">
+        <link rel="stylesheet" type="text/css" href="<%= @items['/static/assets/bootstrap/css/bootstrap.min.css'].path %>">
+        <link rel="stylesheet" type="text/css" href="<%= @items['/static/assets/fancyBox-2.1.5/source/jquery.fancybox.css'].path %>">
+        <link rel="stylesheet" type="text/css" href="<%= @items['/style/screen.*'].path %>" media="screen">
 
         <!-- load jQuery here, so we can jQuery(document).ready(...) from inline <script> -->
-        <script src="<%= @items['/static/assets/jquery/jquery-2.2.3.min.js/'].path %>"></script>
+        <script src="<%= @items['/static/assets/jquery/jquery-2.2.3.min.js'].path %>"></script>
 
-        <%= render '_google_analytics', :tracking_id => @config[:google_analytics_tracking_id] %>
-        <%= render('_disqus', :short_name => @config[:disqus_short_name], :id => canonical_url) if @config[:disqus_short_name] and @item[:comments] %>
-        <%= render '_fancy_box' %>
+        <%= render '/_google_analytics.*', :tracking_id => @config[:google_analytics_tracking_id] %>
+        <%= render('/_disqus/.*', :short_name => @config[:disqus_short_name], :id => canonical_url) if @config[:disqus_short_name] and @item[:comments] %>
+        <%= render '/_fancy_box.*' %>
     </head>
 
     <body>
@@ -68,14 +68,14 @@
 
                                 <% if @config[:github_user] %>
                                 <li>
-                                    <a id="github-navbar-link" href="https://github.com/<%= @config[:github_user] %>" title="<%= @config[:github_user] %> on GitHub"><img src="<%= @items['/static/images/GitHub-Mark.png/'].path %>" alt="GitHub"></a>
+                                    <a id="github-navbar-link" href="https://github.com/<%= @config[:github_user] %>" title="<%= @config[:github_user] %> on GitHub"><img src="<%= @items['/static/images/GitHub-Mark.png'].path %>" alt="GitHub"></a>
                                 </li>
                                 <% end %>
                                 <% if @config[:subscribe_rss] %>
                                 <li>
-                                    <a class="subscribe-rss" href="<%= @items['/atom/'].path %>" title="subscribe via RSS">
+                                    <a class="subscribe-rss" href="<%= @items['/atom.*'].path %>" title="subscribe via RSS">
                                         <span class="visible-xs">RSS</span>
-                                        <img class="hidden-xs" src="<%= @items['/static/images/rss.png/'].path %>" alt="RSS">
+                                        <img class="hidden-xs" src="<%= @items['/static/images/rss.png'].path %>" alt="RSS">
                                     </a>
                                 </li>
                                 <% end %>
@@ -121,7 +121,7 @@
         </footer>
 
         <!-- at last, Javascript stuff -->
-        <script src="<%= @items['/static/assets/bootstrap/js/bootstrap.min.js/'].path %>"></script>
-        <script src="<%= @items['/static/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js/'].path %>"></script>
+        <script src="<%= @items['/static/assets/bootstrap/js/bootstrap.min.js'].path %>"></script>
+        <script src="<%= @items['/static/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js'].path %>"></script>
     </body>
 </html>
