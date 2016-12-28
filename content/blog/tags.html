@@ -14,7 +14,7 @@ comments: false
                 <span class="glyphicon glyphicon-pencil"></span>
                 <%= h item[:articles].length.humanize %> <%= item[:articles].length > 1 ? 'posts' : 'post' %> in <%= h item[:tag] %>
                 <span class="glyphicon glyphicon-calendar"></span>
-                last post on <%= attribute_to_time(item[:articles].first[:created_at]).strftime(@config[:date_format]) %>
+                last post on <%= attribute_to_time(@items[item[:articles].first][:created_at]).strftime(@config[:date_format]) %>
             </p>
         </article>
     <% end %>

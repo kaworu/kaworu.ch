@@ -9,8 +9,8 @@ preprocess do
   def setup_previous_next_nav(items)
     first, last = 0, (items.length - 1)
     items.each_with_index do |item, i|
-      item[:previous] = items[i - 1] if i > first
-      item[:next]     = items[i + 1] if i < last
+      item[:previous] = items[i - 1].identifier if i > first
+      item[:next]     = items[i + 1].identifier if i < last
     end
   end
 
@@ -23,15 +23,15 @@ preprocess do
       injected
     end.each do |tag, articles|
       @items.create(
-        "<%= render '/_blog_archives.*', articles: @item[:articles] %>",
+        "<%= render '/_blog_archives.*', articles: @item[:articles].map { |id| @items[id] } %>",
         {
           navbar: 'Archives',
           title: "Tag: #{tag}",
           kind: 'tag-archive',
           tag: tag,
-          articles: articles,
+          articles: articles.map(&:identifier)
         },
-        "/blog/tags/#{tag}/" # FIXME: slugize ?
+        "/blog/tags/#{tag}" # FIXME: slugize ?
       )
     end
   end
@@ -42,14 +42,14 @@ preprocess do
     slices.each_with_index.inject Array.new do |result, each|
       subarticles, i = each
       @items.create(
-        "<%= render '/_blog_page.*', articles: @item[:articles] %>",
+        "<%= render '/_blog_page.*', articles: @item[:articles].map { |id| @items[id] } %>",
         {
           navbar: 'Blog',
           kind: 'blog-page',
           no_page_header: true,
-          articles: subarticles,
+          articles: subarticles.map(&:identifier),
         },
-        if i.zero? then "/" else "/blog/page/#{i + 1}/" end
+        if i.zero? then "/index.html" else "/blog/page/#{i + 1}" end
       )
     end
   end
@@ -64,28 +64,22 @@ end
 passthrough '/favicon.*'
 
 # some exceptional files
-%w[/sitemap.* /robots.* /humans.* /atom.*]each do |f|
+%w[/sitemap.* /robots.* /humans.* /atom.*].each do |f|
     compile f do
         filter :erb
     end
 end
 
-# static stuff
-compile '/static/**/*' do
-    # nada
-end
-route '/static/**/*' do # /static/foo.html/ → /foo.html
-    item.identifier.to_s[7..-2]
+# stylesheets
+
+ignore '/style/**/_*' # partials
+compile '/style/screen.scss' do
+  filter :sass, Compass.sass_engine_options
+  filter :relativize_paths, :type => :css
 end
 
-# stylesheets
-ignore '/style/**/_*' # partials
-compile '/style/screen/' do
-    filter :sass, Compass.sass_engine_options
-    filter :relativize_paths, :type => :css
-end
 route '/style/**/*' do
-    "#{item.identifier.to_s.chop}.css"
+  item.identifier.without_ext + '.css'
 end
 
 # blog
@@ -103,56 +97,46 @@ compile '/blog/articles/**/*' do
 end
 route '/blog/articles/**/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html
     t = attribute_to_time item[:created_at]
-    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier.to_s}/index.html"
+    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier.without_ext}/index.html"
 end
 
-# default Rules from here.
-
-compile '/**/*' do
-    if item[:extension] == 'css'
-        # don’t filter stylesheets
-    elsif item.binary?
-        # don’t filter binary items
-    else
-      #if item[:extension] =~ /^md|mkd|markdown$/
-      #  filter :kramdown
-      #elsif item[:extension] == 'haml'
-      #  filter :haml
-      #else # default filter
-        filter :erb
-      #end
-      filter :octohl
-      layout '/page.*'
-      layout '/default.*'
-    end
-end
-
-route '/**/index.*' do
-  # /projects/index.md gets written to /projects/index.html
-  item.identifier.without_ext + '.html'
-end
-
+# static stuff
 compile '/static/**/*' do
 end
 
 route '/static/**/*' do
-  # /static/foo.html → /foo.html
-  item.identifier.to_s.sub(/\A\/static/, '')
+  item.identifier.to_s
+end
+
+# "default" rule
+#
+compile '/**/*' do
+  if item[:extension] == 'css' || item.binary?
+    # do nada
+  else
+    filter :erb
+    filter :octohl
+    layout '/page.*'
+    layout '/default.*'
+  end
+end
+
+route '/**/index.html' do
+  item.identifier.to_s
+end
+
+route '/**/*.html' do
+  item.identifier.without_ext + '/index.html'
 end
 
 route '/**/*' do
-    if item[:extension] == 'css'
-        # Write item with identifier /foo/ to /foo.css
-        item.identifier.to_s.chop + '.css'
-    elsif item.binary?
-        # Write item with identifier /foo/ to /foo.ext
-        item.identifier.to_s.chop + (item[:extension] ? '.' + item[:extension] : '')
-    elsif item[:path]
-        item[:path]
-    else
-        # Write item with identifier /foo/ to /foo/index.html
-        "/" + item.identifier.without_ext + 'index.html'
-    end
+  if item[:extension] == 'css' or item.binary?
+    item.identifier.to_s
+  elsif item[:path]
+    item[:path]
+  else
+    item.identifier.without_ext + '/index.html'
+  end
 end
 
 layout '/**/*', :erb

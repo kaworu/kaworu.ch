@@ -66,14 +66,14 @@
 
                 <% if @item[:previous] or @item[:next] %>
                 <ul class="meta text-muted pager">
-                    <% if @item[:previous] %>
+                    <% if previous_nav %>
                         <li class="previous">
-                            <a href="<%= @item[:previous].path %>" title="Previous Post: <%= h @item[:previous][:title] %>">&laquo;&nbsp;<%= h @item[:previous][:title] %></a>
+                            <a href="<%= previous_nav.path %>" title="Previous Post: <%= h previous_nav[:title] %>">&laquo;&nbsp;<%= h previous_nav[:title] %></a>
                         </li>
                     <% end %>
-                    <% if @item[:next] %>
+                    <% if next_nav %>
                         <li class="next">
-                            <a href="<%= @item[:next].path %>" title="Next Post: <%= h @item[:next][:title] %>"><%= h @item[:next][:title] %>&nbsp;&raquo;</a>
+                            <a href="<%= next_nav %>" title="Next Post: <%= h next_nav[:title] %>"><%= h next_nav[:title] %>&nbsp;&raquo;</a>
                         </li>
                     <% end %>
                 </ul>

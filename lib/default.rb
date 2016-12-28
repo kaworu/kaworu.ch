@@ -23,15 +23,23 @@ end
 
 # shortcut for static stuff
 def static_url(path)
-  canonical_url(@items['/static' + path + ".*"])
+  canonical_url(@items['/static' + path])
 end
 
 def article_path(id)
-  articles.select { |a| File.basename(a.identifier) == id }.first.path
+  articles.select { |a| File.basename(a.identifier.without_ext) == id }.first.path
 end
 
 def tag_path(id)
-  tags.select { |t| File.basename(t.identifier) == id }.first.path
+  tags.select { |t| File.basename(t.identifier.without_ext) == id }.first.path
+end
+
+def previous_nav(item=@item)
+  item[:previous] ? @items[item[:previous]] : nil
+end
+
+def next_nav(item=@item)
+  item[:next] ? @items[item[:next]] : nil
 end
 
 # HTML content & prettify helpers
@@ -64,8 +72,9 @@ end
 
 # borrowed and hacked from Octopress
 def include_code(file, options)
-  fn = "static/code/#{file}" # XXX: hardcoded local path
-  options['href'] ||= canonical_url(@items["/#{fn}.*"])
+  fn = "content/static/code/#{file}" # XXX: hardcoded local path
+  STDERR.puts fn
+  options['href'] ||= canonical_url(@items[fn.sub(/\Acontent/, '')])
   "```%s\n%s```" % [options.to_json, File.read(fn)]
 end
 
@@ -75,14 +84,10 @@ end
 
 def excerptize(content)
   pos = content.to_s.index(@config[:excerpt_separator])
-  if pos
-    content.slice(0, pos)
-  else
-    content
-  end
+  pos ? content.slice(0, pos) : content
 end
 
-# Ruby extensions
+# Ruby "extensions"
 
 class String
   def capitalize0

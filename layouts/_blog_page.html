@@ -37,11 +37,11 @@
 </div>
 
 <ul class="pager">
-    <li class="previous <%= 'disabled' unless @item[:previous] %>">
-        <a href="<%= @item[:previous] ? @item[:previous].path : '#' %>">←&nbsp;Older</a>
+    <li class="previous <%= 'disabled' unless previous_nav %>">
+        <a href="<%= previous_nav ? previous_nav.path : '#' %>">←&nbsp;Older</a>
     <li>
         <a href="#wrap">&#8593;&nbsp;back to top</a>
-    <li class="next <%= 'disabled' unless @item[:next] %>">
-        <a href="<%= @item[:next] ? @item[:next].path : '#' %>">Newer&nbsp;→</a>
+    <li class="next <%= 'disabled' unless next_nav %>">
+        <a href="<%= next_nav ? next_nav.path : '#' %>">Newer&nbsp;→</a>
 </ul>
 <!-- /partial _blog_page -->

@@ -65,12 +65,6 @@ data_sources:
     # The encoding to use for input files. If your input files are not in
     # UTF-8 (which they should be!), change this.
     encoding: utf-8
-  -
-    identifier_type: full
-    type:         filesystem
-    items_root:   /static
-    content_dir: static
-    layout_dir: null
 
 # Configuration for the “check” command, which run unit tests on the site.
 checks:
