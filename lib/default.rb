@@ -16,6 +16,7 @@ end
 
 #
 # paths & URLs helpers
+#
 
 def item_canonical_url(item=@item)
   @config[:base_url] + item.path
@@ -25,7 +26,6 @@ def canonical_url path
   item_canonical_url @items[path]
 end
 
-# shortcut for static stuff
 def static_url(path)
   canonical_url "/static#{path}"
 end
@@ -38,15 +38,21 @@ def tag_path(id)
   tags.select { |t| File.basename(t.identifier.without_ext) == id }.first.path
 end
 
+#
+# navigation stuff
+#
+
 def navigation_prev(item=@item)
-  item[:navigation_prev] ? @items[item[:navigation_prev]] : nil
+  @items[item[:navigation_prev]] rescue nil
 end
 
 def navigation_next(item=@item)
-  item[:navigation_next] ? @items[item[:navigation_next]] : nil
+  @items[item[:navigation_next]] rescue nil
 end
 
+#
 # HTML content & prettify helpers
+#
 
 def html_title(item=@item)
   if item[:title]
@@ -77,7 +83,6 @@ end
 # borrowed and hacked from Octopress
 def include_code(file, options)
   fn = "content/static/code/#{file}" # XXX: hardcoded local path
-  STDERR.puts fn
   options['href'] ||= static_url("/code/#{file}")
   "```%s\n%s```" % [options.to_json, File.read(fn)]
 end
@@ -91,7 +96,9 @@ def excerptize(content)
   pos ? content.slice(0, pos) : content
 end
 
+#
 # Ruby "extensions"
+#
 
 class String
   def capitalize0
