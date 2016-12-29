@@ -5,12 +5,17 @@ require 'compass'
 Compass.add_project_configuration 'compass_config.rb'
 
 preprocess do
- # setup the previous/next links
+  # Link the all the given items in order in a doubly linked list.
+  #
+  # The previous and next item identifier are stored in item[:navigation_prev]
+  # and item[:navigation_next] respectively.
+  #
+  # see navigation_prev() and navigation_next()
   def setup_previous_next_nav(items)
     first, last = 0, (items.length - 1)
     items.each_with_index do |item, i|
-      item[:previous] = items[i - 1].identifier if i > first
-      item[:next]     = items[i + 1].identifier if i < last
+      item[:navigation_prev] = items[i - 1].identifier if i > first
+      item[:navigation_next] = items[i + 1].identifier if i < last
     end
   end
 
@@ -23,13 +28,13 @@ preprocess do
       injected
     end.each do |tag, articles|
       @items.create(
-        "<%= render '/_blog_archives.*', articles: @item[:articles].map { |id| @items[id] } %>",
+        "<%= render '/_blog_archives.html', articles: @item[:article_ids].map { |id| @items[id] } %>",
         {
           navbar: 'Archives',
           title: "Tag: #{tag}",
           kind: 'tag-archive',
           tag: tag,
-          articles: articles.map(&:identifier)
+          article_ids: articles.map(&:identifier)
         },
         "/blog/tags/#{tag}" # FIXME: slugize ?
       )
@@ -39,15 +44,14 @@ preprocess do
   # inspired by http://nanoc.ws/docs/guides/paginating-articles/
   def generate_blog_pages_items
     slices = sorted_articles.each_slice(@config[:paginate])
-    slices.each_with_index.inject Array.new do |result, each|
-      subarticles, i = each
+    slices.each_with_index do |subarticles, i|
       @items.create(
-        "<%= render '/_blog_page.*', articles: @item[:articles].map { |id| @items[id] } %>",
+        "<%= render '/_blog_page.html', articles: @item[:article_ids].map { |id| @items[id] } %>",
         {
           navbar: 'Blog',
           kind: 'blog-page',
           no_page_header: true,
-          articles: subarticles.map(&:identifier),
+          article_ids: subarticles.map(&:identifier),
         },
         if i.zero? then "/index.html" else "/blog/page/#{i + 1}" end
       )
@@ -60,77 +64,69 @@ preprocess do
   setup_previous_next_nav blog_pages.reverse
 end
 
+layout '/**/*', :erb
+
 # favicon
 passthrough '/favicon.*'
 
 # some exceptional files
-%w[/sitemap.* /robots.* /humans.* /atom.*].each do |f|
+%w[/sitemap.xml /robots.txt /humans.txt /atom.xml].each do |f|
     compile f do
         filter :erb
     end
 end
 
 # stylesheets
-
 ignore '/style/**/_*' # partials
 compile '/style/screen.scss' do
   filter :sass, Compass.sass_engine_options
   filter :relativize_paths, :type => :css
 end
-
+# /style/foo.scss → /style/foo.css
 route '/style/**/*' do
   item.identifier.without_ext + '.css'
 end
 
 # blog
 compile '/blog/articles/**/*' do
-  if item[:extension] =~ /^md|mkd|markdown$/
-    filter :kramdown
-  elsif item[:extension] == 'haml'
-    filter :haml
-  else # default filter
-    filter :erb
-  end
+  filter :erb
   filter :octohl
-  layout '/article.*'
-  layout '/default.*'
+  layout '/article.html'
+  layout '/default.html'
 end
-route '/blog/articles/**/*' do # /blog/articles/foo.html/ → /blog/1970/01/01/foo.html
+# /blog/articles/foo.html → /blog/1970/01/01/foo/index.html
+route '/blog/articles/**/*' do
     t = attribute_to_time item[:created_at]
-    "/blog/#{t.strftime '%Y/%m/%d'}/#{File.basename item.identifier.without_ext}/index.html"
+    name = File.basename item.identifier.without_ext
+    "/blog/#{t.strftime '%Y/%m/%d'}/#{name}/index.html"
 end
 
 # static stuff
 compile '/static/**/*' do
 end
-
+# /static/foo.bar → /static/foo.bar
 route '/static/**/*' do
   item.identifier.to_s
 end
 
 # "default" rule
-#
 compile '/**/*' do
-  if item[:extension] == 'css' || item.binary?
-    # do nada
-  else
+  unless item.binary?
     filter :erb
     filter :octohl
-    layout '/page.*'
-    layout '/default.*'
+    layout '/page.html'
+    layout '/default.html'
   end
 end
-
+# /foo/bar/index.html → /foo/bar/index.html
 route '/**/index.html' do
   item.identifier.to_s
 end
-
-route '/**/*.html' do
-  item.identifier.without_ext + '/index.html'
-end
-
+# /foo.bin → /foo.bin
+# /foo/bar/oni.html → /foo/bar/oni/index.html
+# + special cases handling for item having a path attribute set.
 route '/**/*' do
-  if item[:extension] == 'css' or item.binary?
+  if item.binary?
     item.identifier.to_s
   elsif item[:path]
     item[:path]
@@ -138,5 +134,3 @@ route '/**/*' do
     item.identifier.without_ext + '/index.html'
   end
 end
-
-layout '/**/*', :erb

@@ -38,12 +38,12 @@ def tag_path(id)
   tags.select { |t| File.basename(t.identifier.without_ext) == id }.first.path
 end
 
-def previous_nav(item=@item)
-  item[:previous] ? @items[item[:previous]] : nil
+def navigation_prev(item=@item)
+  item[:navigation_prev] ? @items[item[:navigation_prev]] : nil
 end
 
-def next_nav(item=@item)
-  item[:next] ? @items[item[:next]] : nil
+def navigation_next(item=@item)
+  item[:navigation_next] ? @items[item[:navigation_next]] : nil
 end
 
 # HTML content & prettify helpers

@@ -5,16 +5,16 @@ comments: false
 ---
 
 <div id="blog-tags">
-    <% tags.sort_by { |item| item[:articles].count }.reverse.each do |item| %>
+    <% tags.sort_by { |item| item[:article_ids].count }.reverse.each do |item| %>
         <article>
             <h2>
                 <a href="<%= item.path %>"><%= h item[:tag] %></a>
             </h2>
             <p class="meta text-muted">
                 <span class="glyphicon glyphicon-pencil"></span>
-                <%= h item[:articles].length.humanize %> <%= item[:articles].length > 1 ? 'posts' : 'post' %> in <%= h item[:tag] %>
+                <%= h item[:article_ids].length.humanize %> <%= item[:article_ids].length > 1 ? 'posts' : 'post' %> in <%= h item[:tag] %>
                 <span class="glyphicon glyphicon-calendar"></span>
-                last post on <%= attribute_to_time(@items[item[:articles].first][:created_at]).strftime(@config[:date_format]) %>
+                last post on <%= attribute_to_time(@items[item[:article_ids].first][:created_at]).strftime(@config[:date_format]) %>
             </p>
         </article>
     <% end %>

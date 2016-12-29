@@ -3,4 +3,4 @@ task :test do
   sh('bundle exec nanoc check --deploy')
 end
 
-task :default => :test
+task default: :test
