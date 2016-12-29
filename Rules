@@ -28,7 +28,7 @@ preprocess do
       injected
     end.each do |tag, articles|
       @items.create(
-        "<%= render '/_blog_archives.html', articles: @item[:article_ids].map { |id| @items[id] } %>",
+        "<%= render '/_blog_archives.erb', articles: @item[:article_ids].map { |id| @items[id] } %>",
         {
           navbar: 'Archives',
           title: "Tag: #{tag}",
@@ -36,7 +36,7 @@ preprocess do
           tag: tag,
           article_ids: articles.map(&:identifier)
         },
-        "/blog/tags/#{tag}" # FIXME: slugize ?
+        "/blog/tags/#{tag}.erb" # FIXME: slugize ?
       )
     end
   end
@@ -46,14 +46,14 @@ preprocess do
     slices = sorted_articles.each_slice(@config[:paginate])
     slices.each_with_index do |subarticles, i|
       @items.create(
-        "<%= render '/_blog_page.html', articles: @item[:article_ids].map { |id| @items[id] } %>",
+        "<%= render '/_blog_page.erb', articles: @item[:article_ids].map { |id| @items[id] } %>",
         {
           navbar: 'Blog',
           kind: 'blog-page',
           no_page_header: true,
           article_ids: subarticles.map(&:identifier),
         },
-        if i.zero? then "/index.html" else "/blog/page/#{i + 1}" end
+        if i.zero? then "/index.erb" else "/blog/page/#{i + 1}.erb" end
       )
     end
   end
@@ -64,73 +64,58 @@ preprocess do
   setup_previous_next_nav blog_pages.reverse
 end
 
-layout '/**/*', :erb
+layout '/**/*.erb', :erb
 
 # favicon
 passthrough '/favicon.*'
 
 # some exceptional files
 %w[/sitemap.xml /robots.txt /humans.txt /atom.xml].each do |f|
-    compile f do
-        filter :erb
-    end
+  compile "#{f}.erb" do
+    filter :erb
+  end
 end
 
 # stylesheets
 ignore '/style/**/_*' # partials
-compile '/style/screen.scss' do
+# /style/foo.scss → /style/foo.css
+compile '/style/**/*.scss' do
   filter :sass, Compass.sass_engine_options
   filter :relativize_paths, :type => :css
-end
-# /style/foo.scss → /style/foo.css
-route '/style/**/*' do
-  item.identifier.without_ext + '.css'
+  write @item.identifier.without_ext + '.css'
 end
 
-# blog
-compile '/blog/articles/**/*' do
+# blog articles
+# /blog/articles/foo.html → /blog/1970/01/01/foo/index.html
+compile '/blog/articles/**/*.erb' do
   filter :erb
   filter :octohl
-  layout '/article.html'
-  layout '/default.html'
+  layout '/article.erb'
+  layout '/default.erb'
+  t = attribute_to_time(@item[:created_at]).strftime('%Y/%m/%d')
+  name = File.basename @item.identifier.without_ext
+  write "/blog/#{t}/#{name}/index.html"
 end
-# /blog/articles/foo.html → /blog/1970/01/01/foo/index.html
-route '/blog/articles/**/*' do
-    t = attribute_to_time item[:created_at]
-    name = File.basename item.identifier.without_ext
-    "/blog/#{t.strftime '%Y/%m/%d'}/#{name}/index.html"
+
+# site pages
+compile '/**/*.erb' do
+  filter :erb
+  filter :octohl
+  layout '/page.erb'
+  layout '/default.erb'
+end
+# /foo/bar/index.erb → /foo/bar/index.html
+route '/**/index.erb' do
+  @item.identifier.without_ext + ".html"
+end
+# /foo/bar/oni.erb → /foo/bar/oni/index.html
+# + special cases handling for item having a path attribute set.
+route '/**/*.erb' do
+  @item[:path] or @item.identifier.without_ext + '/index.html'
 end
 
 # static stuff
+# /static/foo.bar → /foo.bar
 compile '/static/**/*' do
-end
-# /static/foo.bar → /static/foo.bar
-route '/static/**/*' do
-  item.identifier.to_s
-end
-
-# "default" rule
-compile '/**/*' do
-  unless item.binary?
-    filter :erb
-    filter :octohl
-    layout '/page.html'
-    layout '/default.html'
-  end
-end
-# /foo/bar/index.html → /foo/bar/index.html
-route '/**/index.html' do
-  item.identifier.to_s
-end
-# /foo.bin → /foo.bin
-# /foo/bar/oni.html → /foo/bar/oni/index.html
-# + special cases handling for item having a path attribute set.
-route '/**/*' do
-  if item.binary?
-    item.identifier.to_s
-  elsif item[:path]
-    item[:path]
-  else
-    item.identifier.without_ext + '/index.html'
-  end
+  write @item.identifier.to_s.sub(/\A\/static/, '')
 end
