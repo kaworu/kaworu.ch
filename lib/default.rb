@@ -26,16 +26,20 @@ def canonical_url path
   item_canonical_url @items[path]
 end
 
-def static_url(path)
+def static_url path
   canonical_url "/static#{path}"
 end
 
+def static_path path
+  path
+end
+
 def article_path(id)
-  articles.select { |a| File.basename(a.identifier.without_ext) == id }.first.path
+  articles.find { |a| File.basename(a.identifier.without_ext) == id }.path
 end
 
 def tag_path(id)
-  tags.select { |t| File.basename(t.identifier.without_ext) == id }.first.path
+  tags.find { |t| File.basename(t.identifier.without_ext) == id }.path
 end
 
 #
