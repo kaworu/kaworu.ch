@@ -9,7 +9,7 @@
 #   where CODE is some code and options is an optional JSON string.
 #
 # Options:
-#   - language: (required) the syntaxe to highligh
+#   - lang: (required) the syntaxe to highligh
 #               (ex. ruby, javascript etc.). See the Pygment documentation
 #               (http://pygments.org/docs/lexers/) for the full list.
 #   - title:    (optional) the panel's title.
@@ -39,7 +39,7 @@ class OctoHighlight < Nanoc::Filter
       code      = $2
       options   = optstring.empty? ? {} : JSON.parse(optstring)
       txt = strip(code)
-      txt = highlight(txt, options) if options['language']
+      txt = highlight(txt, options) if options['lang']
       txt = tableize(txt, options)
       panelize(txt, options)
     end
@@ -52,7 +52,7 @@ class OctoHighlight < Nanoc::Filter
 
   # highlight the given text using the syntaxe provided in options.
   def highlight(content, options)
-    HighlightCode::highlight(content, options['language'])
+    HighlightCode::highlight(content, options['lang'])
   end
 
   # generate a bootstrap panel, handling link (href) option and title.
@@ -92,7 +92,7 @@ class OctoHighlight < Nanoc::Filter
       code  += "<span class=\"line\">#{line}</span>"
     end
     lines = '<td class="gutter"><pre class="line-numbers">%s</pre></td>' % lines
-    code  = '<td class="code"><pre><code class="%s">%s</code></pre></td>' % [options['language'], code]
+    code  = '<td class="code"><pre><code class="%s">%s</code></pre></td>' % [options['lang'], code]
     table = '<table><tr>%s</tr></table>' % (options['linenos'] === false ? code : lines + code)
     '<div class="highlight">%s</div>' % table
   end
@@ -128,25 +128,25 @@ class OctoHighlight < Nanoc::Filter
   FileUtils.mkdir_p(PYGMENTS_CACHE_DIR)
 
   module HighlightCode
-    def self.highlight(str, language)
-      pygments(str, language).match(/<pre>(.+)<\/pre>/m)[1].to_s.gsub(/ *$/, '') #strip out divs <div class="highlight">
+    def self.highlight(str, lang)
+      pygments(str, lang).match(/<pre>(.+)<\/pre>/m)[1].to_s.gsub(/ *$/, '') #strip out divs <div class="highlight">
     end
 
-    def self.pygments(code, language)
+    def self.pygments(code, lang)
       if defined?(PYGMENTS_CACHE_DIR)
-        path = File.join(PYGMENTS_CACHE_DIR, "#{language}-#{Digest::MD5.hexdigest(code)}.html")
+        path = File.join(PYGMENTS_CACHE_DIR, "#{lang}-#{Digest::MD5.hexdigest(code)}.html")
         if File.exist?(path)
           highlighted_code = File.read(path)
         else
           begin
-            highlighted_code = Pygments.highlight(code, lexer: language, formatter: 'html', options: {encoding: 'utf-8', startinline: true})
+            highlighted_code = Pygments.highlight(code, lexer: lang, formatter: 'html', options: {encoding: 'utf-8', startinline: true})
           rescue MentosError
-            raise "Pygments can't parse unknown language: #{language}."
+            raise "Pygments can't parse unknown language: #{lang}."
           end
           File.open(path, 'w') {|f| f.print(highlighted_code) }
         end
       else
-        highlighted_code = Pygments.highlight(code, lexer: language, formatter: 'html', options: {encoding: 'utf-8', startinline: true})
+        highlighted_code = Pygments.highlight(code, lexer: lang, formatter: 'html', options: {encoding: 'utf-8', startinline: true})
       end
       highlighted_code
     end

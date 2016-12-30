@@ -47,7 +47,7 @@ tags: [programming, C]
       what they really are today. I guess the opposite is also true, watch out
       if you're learning C coming from C++.
 
-```{"language":"c","linenos":false}
+```{"lang":"c","linenos":false}
 /*
  * - In C++, this declare a function that take no argument.
  * - In C, this declare a function that can take an arbitrary number of
@@ -69,7 +69,7 @@ void	do_something();
     is a good start. About your environment it's your OS (and when it's
     something else it will be obvious).
 
-```{"language":"c","linenos":false,"title":"Some good old K&R C brought to you by Perl v1.0.1.3 (!)"}
+```{"lang":"c","linenos":false,"title":"Some good old K&R C brought to you by Perl v1.0.1.3 (!)"}
 main(argc,argv,env)
 register int argc;
 register char **argv;
@@ -119,7 +119,7 @@ register char **env;
       This is really about personal taste though, so my advice is to
       <em>play a bit with both <span class="brand">GCC</span> and <span class="brand">clang</span> to make your own mind</em>.
 
-<%= include_code 'c/hello.c', title: "A very simple and common example", language: "c" %>
+<%= include_code 'c/hello.c', title: "A very simple and common example", lang: "c" %>
 
 ```{"linenos":false}
 % gcc hello.c

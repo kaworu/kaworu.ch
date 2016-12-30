@@ -36,7 +36,7 @@ categories: [Octopress]
     <span class="path">plugins/category_list_tag.rb</span>. Here is a copy of
     Dan's code:
 
-```{"title":"plugins/category_list_tag.rb","language":"ruby"}
+```{"title":"plugins/category_list_tag.rb","lang":"ruby"}
 module Jekyll
   class CategoryListTag < Liquid::Tag
     def render(context)
@@ -63,7 +63,7 @@ Liquid::Template.register_tag('category_list', Jekyll::CategoryListTag)
     <span class="path">source/blog/categories/index.html</span>), give it the
     <code>category_list</code> liquid tag and voilà! Here is a quick example:
 
-```{"title":"source/blog/categories/index.html","language":"html"}
+```{"title":"source/blog/categories/index.html","lang":"html"}
 ---
 title: "Blog Categories"
 comments: false
