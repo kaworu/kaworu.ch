@@ -99,7 +99,7 @@ Fatal: Unknown scheme: BLF-CRYPT
 <p>
     Here is the relevant configuration part:
 </p>
-```{"title":"config.local.php","lang":"PHP"}
+```{"title":"config.local.php","lang":"php"}
 // Encrypt
 // In what way do you want the passwords to be crypted?
 // md5crypt = internal postfix admin md5
@@ -139,7 +139,7 @@ $CONF['dovecotpw'] = "/usr/local/bin/doveadm pw -r 12";
     need to figure out which one it is. First look at one of the password from
     the postfix database:
 </p>
-```{"lang":"SQL","linenos":false}
+```{"lang":"sql","linenos":false}
 SELECT password FROM admin LIMIT 1;
 ```
 
@@ -166,7 +166,7 @@ SELECT password FROM admin LIMIT 1;
     Alright! Now we can prefix all the old password so they can still be used
     to log in:
 </p>
-```{"lang":"SQL","linenos":false}
+```{"lang":"sql","linenos":false}
 UPDATE admin   SET password = CONCAT('{MD5-CRYPT}', password);
 UPDATE mailbox SET password = CONCAT('{MD5-CRYPT}', password);
 ```
@@ -188,7 +188,7 @@ UPDATE mailbox SET password = CONCAT('{MD5-CRYPT}', password);
             Once logged in, change your password. Once updated, check that your
             new password has been hashed using the new password scheme:
         </p>
-```{"lang":"SQL","linenos":false}
+```{"lang":"sql","linenos":false}
 SELECT password FROM admin ORDER BY modified DESC LIMIT 1;
 ```
     </li>
@@ -203,7 +203,7 @@ SELECT password FROM admin ORDER BY modified DESC LIMIT 1;
             Create a new mailbox and check that its password has been hashed
             using the new password scheme:
         </p>
-```{"lang":"SQL","linenos":false}
+```{"lang":"sql","linenos":false}
 SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
 ```
     </li>
@@ -213,7 +213,7 @@ SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
 <p>
     Here is the relevant configuration part:
 </p>
-```{"title":"plugins/password/config.inc.php","lang":"PHP"}
+```{"title":"plugins/password/config.inc.php","lang":"php"}
 // The SQL query used to change the password.
 // The query can contain the following macros that will be expanded as follows:
 //      %p is replaced with the plaintext new password
@@ -284,7 +284,7 @@ $rcmail_config['password_dovecotpw_with_method'] = true;
             Once logged in, change your password. Once updated, check that your
             new password has been hashed using the new password scheme:
         </p>
-```{"lang":"SQL","linenos":false}
+```{"lang":"sql","linenos":false}
 SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
 ```
     </li>

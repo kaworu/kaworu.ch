@@ -6,47 +6,44 @@
     <meta itemprop="url"         content="<%= @config[:base_url] %>">
 
     <% year = nil %>
-    <% for article in sorted_articles %>
-
-        <% if year != attribute_to_time(article[:created_at]).year %>
-            <% year = attribute_to_time(article[:created_at]).year %>
-            <h2 class="year"><%= year %></h2>
+    <% for xs in sorted_articles.group_by { |item| attribute_to_time(item[:created_at]).year } %>
+        <h2 class="year"><%= xs[0] %></h2>
+        <% for article in xs[1] %>
+            <article class="page-header" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+                <h2 class="post-title" itemprop="name headline">
+                  <a href="<%= article.path %>" itemprop="url"><%= h article[:title] %></a>
+                </h2>
+                <p class="meta text-muted">
+                  <!-- author -->
+                  <span class="glyphicon glyphicon-user"></span>
+                  <span class="byline author vcard" itemprop="author" itemscope itemtype="https://schema.org/Person">
+                      Posted by
+                      <span class="fn" itemprop="name"><%= item_author article %></span>
+                  </span>
+                  <!-- dates -->
+                  <span class="glyphicon glyphicon-calendar"></span>
+                  <% if article[:updated_at] %>
+                      <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" itemprop="datePublished dateCreated"></time>
+                      <time datetime="<%= attribute_to_time(article[:updated_at]).xmlschema %>" data-updated="true" class="updated" itemprop="dateModified">
+                          Updated <%= attribute_to_time(article[:updated_at]).strftime(@config[:date_format]) %>
+                      </time>
+                  <% else %>
+                        <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" itemprop="datePublished dateCreated">
+                          <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
+                      </time>
+                  <% end %>
+                  <% if article[:tags] and not article[:tags].length.zero? %>
+                  <!-- tags -->
+                  <span class="glyphicon glyphicon-tags"></span> 
+                  <span class="tags">
+                  <% for tag in article[:tags] do %>
+                      <a class="tag label label-primary" href="<%= tag_path tag %>"><%= h tag %></a>
+                  <% end %>
+                  </span>
+                  <% end %>
+              </p>
+            </article>
         <% end %>
-
-        <article class="page-header" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-            <h2 class="post-title" itemprop="name headline">
-              <a href="<%= item_canonical_url article %>" itemprop="url"><%= h article[:title] %></a>
-            </h2>
-            <p class="meta text-muted">
-              <!-- author -->
-              <span class="glyphicon glyphicon-user"></span>
-              <span class="byline author vcard" itemprop="author" itemscope itemtype="https://schema.org/Person">
-                  Posted by
-                  <span class="fn" itemprop="name"><%= item_author article %></span>
-              </span>
-              <!-- dates -->
-              <span class="glyphicon glyphicon-calendar"></span>
-              <% if article[:updated_at] %>
-                  <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" itemprop="datePublished dateCreated"></time>
-                  <time datetime="<%= attribute_to_time(article[:updated_at]).xmlschema %>" data-updated="true" class="updated" itemprop="dateModified">
-                      Updated <%= attribute_to_time(article[:updated_at]).strftime(@config[:date_format]) %>
-                  </time>
-              <% else %>
-                    <time datetime="<%= attribute_to_time(article[:created_at]).xmlschema %>" itemprop="datePublished dateCreated">
-                      <%= attribute_to_time(article[:created_at]).strftime(@config[:date_format]) %>
-                  </time>
-              <% end %>
-              <% if article[:tags] and not article[:tags].length.zero? %>
-              <!-- tags -->
-              <span class="glyphicon glyphicon-tags"></span> 
-              <span class="tags">
-              <% for tag in article[:tags] do %>
-                  <a class="tag label label-primary" href="<%= tag_path tag %>"><%= h tag %></a>
-              <% end %>
-              </span>
-              <% end %>
-          </p>
-        </article>
     <% end %>
 </div>
 <!-- /partial _blog_archives -->
