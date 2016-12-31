@@ -38,7 +38,7 @@ class OctoHighlight < Nanoc::Filter
       code      = $2
       options   = optstring.empty? ? {} : JSON.parse(optstring)
       txt = strip(code)
-      txt = highlight(txt, options) if options['lang']
+      txt = highlight(txt, options)
       panelize(txt, options)
     end
   end
@@ -77,7 +77,7 @@ class OctoHighlight < Nanoc::Filter
     else
       caption = '<figcaption class="panel-heading clearfix">%s</figcaption>' % [download + title]
     end
-
+    content = "<pre>#{content}</pre>" if options['linenos'] === false
     (<<-EOL
       <figure class="code panel panel-default">
         %s
