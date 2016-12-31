@@ -46,8 +46,8 @@ html, body {
     }
 }
 
-/* GitHub navbar link */
-#page-header #github-navbar-link {
+/* GitHub & Twitter navbar link */
+#github-navbar-link, #twitter-navbar-link {
     padding-top: 0.9em;
     padding-bottom: 0;
     img {
@@ -55,7 +55,7 @@ html, body {
     }
 }
 
-/* sexy underline for navbar active item */
+/* underline for navbar active item */
 .navbar-default .navbar-nav > .active > a {
     &, &:active, &:focus {
         border-bottom: 1px solid #d33682;

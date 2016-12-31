@@ -124,8 +124,6 @@ paginate: 6
 excerpt_link: "Read on &rarr;"
 excerpt_separator: "<!-- more -->"
 
-# RSS
-subscribe_rss: true
 # search
 simple_search: https://duckduckgo.com
 # Google Analytics
@@ -134,3 +132,7 @@ google_analytics_tracking_id: UA-40868430-1
 disqus_short_name: forkwhilefork
 # GitHub
 github_user: kAworu
+# GitHub
+twitter_account: enospoon
+# RSS
+subscribe_rss: true

@@ -71,6 +71,11 @@
                                     <a id="github-navbar-link" href="https://github.com/<%= @config[:github_user] %>" title="<%= @config[:github_user] %> on GitHub"><img src="<%= static_path '/images/GitHub-Mark.png' %>" alt="GitHub"></a>
                                 </li>
                                 <% end %>
+                                <% if @config[:twitter_account] %>
+                                <li>
+                                    <a id="twitter-navbar-link" href="https://twitter.com/<%= @config[:twitter_account] %>" title="@<%= @config[:twitter_account] %> on Twitter"><img src="<%= static_path '/images/twitter.png' %>" alt="Twitter"></a>
+                                </li>
+                                <% end %>
                                 <% if @config[:subscribe_rss] %>
                                 <li>
                                     <a class="subscribe-rss" href="<%= @items['/atom.*'].path %>" title="subscribe via RSS">
