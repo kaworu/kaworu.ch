@@ -100,6 +100,8 @@ Fatal: Unknown scheme: BLF-CRYPT
     Here is the relevant configuration part:
 </p>
 ```{"title":"config.local.php","lang":"php"}
+<?php
+// ...
 // Encrypt
 // In what way do you want the passwords to be crypted?
 // md5crypt = internal postfix admin md5
@@ -214,6 +216,8 @@ SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
     Here is the relevant configuration part:
 </p>
 ```{"title":"plugins/password/config.inc.php","lang":"php"}
+<?php
+// ...
 // The SQL query used to change the password.
 // The query can contain the following macros that will be expanded as follows:
 //      %p is replaced with the plaintext new password
