@@ -47,7 +47,8 @@ html, body {
 }
 
 /* GitHub & Twitter navbar link */
-#github-navbar-link, #twitter-navbar-link {
+#page-header #github-navbar-link,
+#page-header #twitter-navbar-link {
     padding-top: 0.9em;
     padding-bottom: 0;
     img {
