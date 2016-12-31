@@ -129,14 +129,18 @@ hello c:8:2: error: expected ';' before 'return'
   ^
 ```
 
-```{"linenos":false}
+<figure class="code panel panel-default">
+<div class="panel-body highlight">
+<pre>
 % clang hello.c
 <strong>hello.c:7:26: <span style="color:red !important">error</span>: expected ';' after expression</strong>
         printf("Hello World!\n")
                                 <strong><span style="color:green !important">^</span></strong>
                                 <span style="color:green !important">;</span>
 1 error generated.
-```
+</pre>
+</div>
+</figure>
 
 <h2>UB</h2>
 

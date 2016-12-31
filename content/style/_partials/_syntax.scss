@@ -1,3 +1,8 @@
+pre {
+    color: $base1;
+    background: $base03;
+}
+
 figure.code .highlight {
     padding: 0;
     //background: $base03;
@@ -8,8 +13,6 @@ figure.code .highlight {
         padding: 1em;
         border: none;
         @import "pygment";
-        color: $base1;
-        background: $base03;
     }
     // reset bootstrap's content
     &:before, &:after {
