@@ -1,0 +1,70 @@
+---
+kind: article
+navbar: Blog
+title: "OpenBSD daily(8) on Linux"
+created_at: 2016-12-31 17:17:56 +0100
+updated_at: 2017-01-01 12:06:32 +0100
+comments: true
+tags: [sysadmin, OpenBSD, Ubuntu]
+---
+
+<div class="clearfix">
+    <img class="no-border left" src="<%= static_url '/images/puffy.png' %>" alt="puffy">
+    <p>
+      Recently, I had to setup an Ubuntu VM (I'm running them through
+      <a href="http://www.bhyve.org/">bhyve</a> by the way, and it's really
+      sweet). But the day after, to my surprise, the lovely heartbeat email
+      <code>$hostname daily run output</code> I've been used to was nowhere to be
+      found. After a quick check, the Ubuntu cron "periodic" stuff doesn't
+      output anything unless something go wrong.
+    <p>
+      I could easily add scripts into the
+      <span class="path">/etc/cron.daily</span> directory, but then I would
+      have to handle the output "by hand" if they should or should not report
+      something and the email subject would be the ugly cron line:
+      <code>
+        Cron &lt;root@$hostname&gt; test -x /usr/sbin/anacron || ( cd / &amp;&amp; run-parts --report /etc/cron.daily )
+      </code>
+    <p>
+      Ultimately I realized that my dream was something like
+      <a href="http://man.openbsd.org/OpenBSD-current/man8/daily.8">
+        <span class="brand">OpenBSD</span> daily(8)
+      </a> that I am used to (they say old habits die hard). Since they are
+      simple POSIX shell scripts, I've hacked them a bit to run on Ubuntu.
+</div>
+
+<!-- more -->
+
+<%= include_code 'openbsd-daily-on-ubuntu/daily',   title: '/etc/daily',   lang: 'shell' %>
+<div class="codeblock-comment alert alert-info">
+  I had to remove some <span class="brand">OpenBSD</span> specific daily stuff
+  like <span class="manpage">security(8)</span> and adapt a bit the rest
+  like the <span class="manpage">stat(1)</span> options at line 36.
+</div>
+<p>
+  <span class="filename">/etc/weekly</span> and
+  <span class="filename">/etc/monthly</span> were easier:
+</p>
+
+<%= include_code 'openbsd-daily-on-ubuntu/weekly',  title: '/etc/weekly',  lang: 'shell' %>
+<%= include_code 'openbsd-daily-on-ubuntu/monthly', title: '/etc/monthly', lang: 'shell' %>
+
+<p>
+  Then, the system's <span class="filename">/etc/crontab</span> has to be
+  adapted to actually run them. I used the same timing as
+  <span class="brand">OpenBSD</span> (starting at line 17):
+</p>
+<%= include_code 'openbsd-daily-on-ubuntu/crontab', title: '/etc/crontab', lang: 'shell' %>
+
+<p>
+  Finally, here is my <span class="filename">/etc/daily.local</span>. It checks
+  for packages and security updates along with
+  <a href="https://letsencrypt.org/"><span class="brand">Let's Encrypt</a> SSL
+  certificates renewal:
+</p>
+<%= include_code 'openbsd-daily-on-ubuntu/daily.local', title: '/etc/daily.local', lang: 'shell' %>
+
+<p>
+  And that's it! Let me know if this post was useful to you and if I missed
+  anything of course. Happy new year by the way :)
+</p>

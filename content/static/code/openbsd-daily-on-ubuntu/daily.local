@@ -1,0 +1,13 @@
+# hacked from /etc/update-motd.d/90-updates-available to only show something
+# when there are update(s) available.
+next_part "Ubuntu packages:"
+stamp="/var/lib/update-notifier/updates-available"
+if [ -r "$stamp" ]; then
+	awk 'length($0) > 0 && $1 != "0" {print}' "$stamp"
+fi
+
+next_part "renew Let's Encrypt certificates:"
+letsencrypt --text --noninteractive --agree-tos renew
+# XXX: no way of knowing with this client version if we actually have renewed a
+# certificat, so reload nginx anyway.
+systemctl reload nginx
