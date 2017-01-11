@@ -23,7 +23,6 @@
         <!-- load jQuery here, so we can jQuery(document).ready(...) from inline <script> -->
         <script src="<%= static_path '/assets/jquery/jquery-3.1.1.min.js' %>"></script>
 
-        <%= render('/_google_analytics.erb', tracking_id: @config[:google_analytics_tracking_id]) %>
         <%= render('/_disqus.erb', short_name: @config[:disqus_short_name], id: item_canonical_url(@item)) if @config[:disqus_short_name] and @item[:comments] %>
         <%= render '/_fancy_box.erb' %>
     </head>
