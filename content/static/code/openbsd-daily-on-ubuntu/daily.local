@@ -3,7 +3,7 @@
 next_part "Ubuntu packages:"
 stamp="/var/lib/update-notifier/updates-available"
 if [ -r "$stamp" ]; then
-	awk 'length($0) > 0 && $1 != "0" {print}' "$stamp"
+	awk 'int($1) {print}' "$stamp"
 fi
 
 next_part "renew Let's Encrypt certificates:"
