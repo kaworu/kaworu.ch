@@ -1,49 +1,9 @@
-/* nice sticky footer, from http://getbootstrap.com/examples/sticky-footer/ */
-html, body {
-    height: 100%;
-    /* The html and body elements cannot have any padding or margin. */
-}
-/* Wrapper for page content to push down footer */
-#wrap {
-  min-height: 100%;
-  height: auto !important;
-  height: 100%;
-  /* Negative indent footer by its height */
-  margin: 0 auto -60px;
-  /* Pad bottom by footer height */
-  padding: 0 0 60px;
-}
-
-/* Set the fixed height of the footer here */
-#page-footer {
-    height: 60px;
-}
-
-/* small border for subtitles in post and pages */
-.entry-content h2 {
-    border-bottom: 1px solid #eee;
-}
-
 /* spoon ! */
 #site-title {
     font-size: 36px;
     margin-top: 0;
     padding-top: 38px;
     background: transparent url(/images/spoon.jpg) no-repeat right bottom;
-}
-
-/* give a max-width for image in posts so they don't take to much space when
-   there is not much place */
-.entry-content {
-    img.left, img.right {
-        /* golden ratio */
-        max-width: 62%;
-    }
-    .codeblock-comment {
-        font-size: 80%;
-        margin-top: -1.6em;
-        padding: 0.4em;
-    }
 }
 
 /* GitHub & Twitter navbar link */
@@ -66,4 +26,23 @@ html, body {
 /* mobile friendly fix */
 .navbar-default a.navbar-brand.visible-xs {
     margin-top: 1em;
+}
+
+.entry-content {
+    /* small border for subtitles in post and pages */
+    h2 {
+        border-bottom: 1px solid #eee;
+    }
+    /* give a max-width for image so they don't take to much space when the
+       viewport is small */
+    img.left, img.right {
+        /* golden ratio */
+        max-width: 62%;
+    }
+    /* small comments below codeblock */
+    .codeblock-comment {
+        font-size: 80%;
+        margin-top: -1.6em;
+        padding: 0.4em;
+    }
 }
