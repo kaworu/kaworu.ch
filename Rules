@@ -27,17 +27,16 @@ preprocess do
       article_tags.each { |tag| (injected[tag] ||= Array.new) << article }
       injected
     end.each do |tag, articles|
-      @items.create(
-        "<%= render '/_blog_archives.erb', articles: @item[:article_ids].map { |id| @items[id] } %>",
-        {
-          navbar: 'Archives',
-          title: "Tag: #{tag}",
-          kind: 'tag-archive',
-          tag: tag,
-          article_ids: articles.map(&:identifier)
-        },
-        "/blog/tags/#{tag}.erb" # FIXME: slugize ?
-      )
+      content = "<%= render '/_blog_archives.erb', articles: @item[:article_ids].map { |id| @items[id] } %>"
+      attributes = {
+        navbar: 'Archives',
+        title: "Tag: #{tag}",
+        kind: 'tag-archive',
+        tag: tag,
+        article_ids: articles.map(&:identifier)
+      }
+      identifier = "/blog/tags/#{tag}.erb" # FIXME: slugize ?
+      @items.create(content, attributes, identifier)
     end
   end
 
@@ -45,16 +44,18 @@ preprocess do
   def generate_blog_pages_items
     slices = sorted_articles.each_slice(@config[:paginate])
     slices.each_with_index do |subarticles, i|
-      @items.create(
-        "<%= render '/_blog_page.erb', articles: @item[:article_ids].map { |id| @items[id] } %>",
-        {
-          navbar: 'Blog',
-          kind: 'blog-page',
-          no_page_header: true,
-          article_ids: subarticles.map(&:identifier),
-        },
-        if i.zero? then "/index.erb" else "/blog/page/#{i + 1}.erb" end
-      )
+      content = "<%= render '/_blog_page.erb', articles: @item[:article_ids].map { |id| @items[id] } %>"
+      attributes = {
+        navbar: 'Blog',
+        kind: 'blog-page',
+        no_page_header: true,
+        article_ids: subarticles.map(&:identifier),
+      }
+      identifier = if i.zero?
+        then "/index.erb"
+        else "/blog/page/#{i + 1}.erb"
+      end
+      @items.create(content, attributes, identifier)
     end
   end
 
