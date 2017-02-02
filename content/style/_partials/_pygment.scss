@@ -9,12 +9,12 @@ $dark: 0;
 .o      { color: darken($base1, $dark) !important; font-weight: bold !important; }                       /* Operator */
 .p      { color: darken($base1, $dark) !important; }                                             /* Operator */
 .ow     { color: darken($solar-cyan, $dark) !important; font-weight: bold !important; }                       /* Operator.Word */
-.gd     { color: darken($base1, $dark) !important; background-color: mix($solar-red, $base03, 25%) !important; display: inline-block; }               /* Generic.Deleted */
+.gd     { color: darken($base1, $dark) !important; background-color: mix($solar-red, $base03, 25%) !important; }               /* Generic.Deleted */
 .gd .x  { color: darken($base1, $dark) !important; background-color: mix($solar-red, $base03, 35%) !important; display: inline-block; }               /* Generic.Deleted.Specific */
 .ge     { color: darken($base1, $dark) !important; font-style: italic !important; }                      /* Generic.Emph */
 //.gr     { color: #aa0000 }                                          /* Generic.Error */
 .gh     { color: darken($base01, $dark) !important; }                                          /* Generic.Heading */
-.gi     { color: darken($base1, $dark) !important; background-color: mix($solar-green, $base03, 20%) !important; display: inline-block; }               /* Generic.Inserted */
+.gi     { color: darken($base1, $dark) !important; background-color: mix($solar-green, $base03, 20%) !important; }               /* Generic.Inserted */
 .gi .x  { color: darken($base1, $dark) !important; background-color: mix($solar-green, $base03, 40%) !important; display: inline-block; }               /* Generic.Inserted.Specific */
 //.go     { color: #888888 }                                          /* Generic.Output */
 //.gp     { color: #555555 }                                          /* Generic.Prompt */
