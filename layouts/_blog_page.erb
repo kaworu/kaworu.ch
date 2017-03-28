@@ -29,7 +29,7 @@
             </div>
             <% if has_excerpt?(article.compiled_content) %>
                 <footer>
-                    <a class="read-more btn btn-default pull-right" href="<%= article.path %>"><%= @config[:excerpt_link] %></a>
+                    <a class="read-more pull-right" href="<%= article.path %>"><%= @config[:excerpt_link] %></a>
                 </footer>
             <% end %>
         </article>
