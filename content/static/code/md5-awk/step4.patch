@@ -1,0 +1,16 @@
+--- step3.awk	2017-02-20 21:30:13.502377000 +0100
++++ step4.awk	2017-02-20 21:30:23.464046000 +0100
+@@ -218,11 +218,11 @@
+ }
+ 
+ function bw_lshift(x, n) {
+-	return lshift(x, n);
++	return x * (2 ^ n);
+ }
+ 
+ function bw_rshift(x, n) {
+-	return rshift(x, n);
++	return int(x / (2 ^ n));
+ }
+ 
+ function bw_and(x, y) {

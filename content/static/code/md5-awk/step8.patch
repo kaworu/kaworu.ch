@@ -1,0 +1,52 @@
+--- step7.awk	2017-03-07 12:08:08.666000000 +0100
++++ step8.awk	2017-03-07 15:16:41.668779000 +0100
+@@ -34,9 +34,9 @@
+ 	# convert the array of bytes into an array of 32-bits words.
+ 	# NOTE: words is 0-indexed.
+ 	for (i = 1; i <= nbytes; i += 4) {
+-		hi = bw_or(bw_lshift(bytes[i + 3], 8), bytes[i + 2]);
+-		lo = bw_or(bw_lshift(bytes[i + 1], 8), bytes[i + 0]);
+-		words[nwords++] = bw_or(bw_lshift(hi, 16), lo);
++		hi = bw_lshift(bytes[i + 3], 8) + bytes[i + 2];
++		lo = bw_lshift(bytes[i + 1], 8) + bytes[i + 0];
++		words[nwords++] = bw_lshift(hi, 16) + lo;
+ 	}
+ 
+ 	# Step 1. Append Padding Bits
+@@ -46,7 +46,7 @@
+ 		words[nwords++] = 128; # 0x80
+ 	} else {
+ 		# append a '1' bit in the byte just after the last input byte.
+-		words[nwords - 1] = bw_or(words[nwords - 1], bw_lshift(128, (nbytes % 4) * 8)); # 0x80
++		words[nwords - 1] = words[nwords - 1] + bw_lshift(128, (nbytes % 4) * 8); # 0x80
+ 	}
+ 	# "fill" the remaining bytes with 0 until we're just shy two words of
+ 	# having 16-Word Blocks.
+@@ -152,10 +152,10 @@
+ 	}
+ 
+ 	for (i = j = 0; j < 16; j += 4) {
+-		digest[j + 0] = bw_and(state[i], 255); # 0xff
+-		digest[j + 1] = bw_and(bw_rshift(state[i],    8), 255); # 0xff
+-		digest[j + 2] = bw_and(bw_rshift(state[i],   16), 255); # 0xff
+-		digest[j + 3] = bw_and(bw_rshift(state[i++], 24), 255); # 0xff
++		digest[j + 0] = state[i] % (2 ^ 8);
++		digest[j + 1] = bw_rshift(state[i],    8) % (2 ^ 8);
++		digest[j + 2] = bw_rshift(state[i],   16) % (2 ^ 8);
++		digest[j + 3] = bw_rshift(state[i++], 24) % (2 ^ 8);
+ 	}
+ 	for (i = 0; i < 16; i++)
+ 		ret = sprintf("%s%02x", ret, digest[i]);
+@@ -206,8 +206,10 @@
+ 	return a;
+ }
+ 
+-function ROTATE_LEFT(x, n) {
+-	return bw_or((bw_lshift(x, n)) % (2 ^ 32), bw_rshift(x, 32 - n));
++function ROTATE_LEFT(x, n,    l, r) {
++	l = bw_lshift(x, n) % (2 ^ 32);
++	r = bw_rshift(x, 32 - n);
++	return (r + l);
+ }
+ 
+ function bw_not(x) {

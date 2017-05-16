@@ -1,0 +1,1269 @@
+---
+kind: article
+navbar: Blog
+title: "Implementing MD5 in AWK"
+created_at: 2017-05-15 01:15:27 +0100
+comments: true
+tags: [programming, AWK]
+---
+
+<div class="clearfix">
+  <img class="no-border left" src="<%= static_url '/images/md5-awk.png' %>" alt="awk">
+  <p>
+    It is only recently that I've discovered the
+    <a href="https://adventofcode.com/">Advent of Code</a>, a coding
+    challenge happening on December (though available all year) since 2015
+    and it is quite unique. I've set out to solve the 2015 puzzles in
+    <a href="https://en.wikipedia.org/wiki/AWK">AWK</a> (you can find my solutions
+    <a href="https://github.com/kAworu/adventofcode-2015">here</a>). Very
+    soon one of them required to compute (a lot of) MD5 hashes. After some
+    research, I found out there are basically three solutions:
+  </p>
+  <ol>
+    <li>
+      Using a pipe. This is expected to be slow, relying on an external program,
+      but very simple to implement.
+    <li>
+      Write a
+      <a href="https://www.gnu.org/software/gawk/manual/html_node/Dynamic-Extensions.html">dynamic extension</a>
+      in C or C++. This should yield very good performances, but would be
+      limited to <span class="brand">GNU Awk</span> and tedious to deploy as it
+      would require compiling.
+    <li>
+      Implement MD5 in AWK. This is expected to be portable and very slow, but
+      more importantly a lot of fun.
+  </ol>
+  <p>
+     In this post I'll go through the implementation of MD5 in AWK by first
+     writing a <span class="brand">GNU Awk</span> version (because of some of
+     its features), then porting to AWK, and finally optimizing.  The main
+     challenge is that MD5 is basically a lot of bitwise operations on 32-bits
+     integers and AWK has neither.  If that sounds interesting to you, sit
+     comfortably and read on — this is going to be a long ride.
+  </p>
+</div>
+
+<!-- more -->
+
+<h2>setup()</h2>
+
+<p class="alert alert-warning">
+  <span class="glyphicon glyphicon-warning-sign"></span> In case you missed it
+  <em>I wrote all this to solve a coding challenge — for fun</em>.  Theses
+  implementations have a lot of limitations and you should not use them for
+  anything remotely serious (well, you should not use MD5 for anything remotely
+  serious nowadays anyway).
+</p>
+
+<p>
+  Let start with a basic template that mimic the <code>openssl md5</code>
+  command output:
+</p>
+
+```{"lang":"awk","title":"base.awk"}
+{
+	# NOTE: remember the input files in-order in the `files' array.
+	if (nfiles == 0 || files[nfiles] != FILENAME)
+		files[++nfiles] = FILENAME;
+	# XXX: only work with files ending with a newline, this is an OK
+	# limitation since it is required by POSIX.
+	content[FILENAME] = content[FILENAME] $0 "\n";
+}
+
+END {
+	# go over all the files in-order.
+	for (i = 1; i <= nfiles; i++) {
+		fn = files[i];
+		# a-la `openssl md5' output.
+		printf("MD5(%s)= %s\n", fn, md5(content[fn]));
+	}
+}
+
+# our md5 implementation
+function md5(input) {
+	# TODO
+}
+```
+
+<p>
+  The script read every lines from the files given on the command line (or
+  consume the standard input) and save them into the <code>content</code>
+  variable. Because we want to display the computed checksum in the same order
+  as given, we have to do a little dance with <code>files</code> and
+  <code>nfiles</code>. If you are not familiar with AWK, note that
+  <em>arrays are 1-indexed</em>. We've followed this practice for
+  <code>files</code>. Also all uninitialized variables (including array values)
+  are 0 by default, so we don't need to explicitly initialize
+  <code>nfiles</code>.
+</p>
+
+<p>
+  From now on the focus will be on the <code>md5()</code> function.  We'll be
+  following the <a href="https://www.ietf.org/rfc/rfc1321.txt">RFC</a>
+  step-by-step. It include a reference implementation in C,
+  <span class="filename">Md5.c</span>, that you should also find
+  <a href="https://people.csail.mit.edu/rivest/Md5.c">here</a>. It was really
+  handy to print debug the intermediate states etc. Now, this implementation
+  has been written a long time ago and need a trivial patch:
+</p>
+
+<%= include_code 'md5-awk/Md5.c.patch', title: 'Md5.c.patch', lang: 'patch' %>
+
+
+<h2>massaging the input</h2>
+
+<p>
+  For further processing we need the message to be represented as 32-bits
+  words:
+</p>
+
+```{"lang":"awk","linenos":false}
+# convert the input into an array of bytes using ord() on each
+# character.
+nbytes = split(input, chars, "");
+for (i = 1; i <= nbytes; i++)
+	bytes[i] = ord(chars[i]);
+```
+<p class="codeblock-comment text-muted">
+  Remember that arrays are 1-indexed in AWK. Thus, <code>chars</code> must be
+  walked from <code>1</code> until <code>nbytes</code> included.
+</p>
+
+<p>
+  First, we split the <code>input</code> string as an array of characters. One
+  byte per character is assumed (ASCII) but this could work with non-ASCII text
+  too (you may need to <code>LC_ALL=C</code> because
+  <span class="brand">GNU Awk</span> is locale aware).  Then, we "convert" each
+  character as a byte using <code>ord()</code>. Whereas many languages have an
+  <code>ord()</code> function AWK doesn't, but fortunately we can find an
+  implementation from
+  <a href="https://www.gnu.org/software/gawk/manual/html_node/Ordinal-Functions.html">the GNU Awk manual</a>.
+  Let's hack it a bit and we get:
+</p>
+
+```{"lang":"awk","linenos":false}
+# from https://www.gnu.org/software/gawk/manual/html_node/Ordinal-Functions.html
+function _ord_init(    i)
+{
+	for (i = 0; i < 256; i++)
+		_ord_[sprintf("%c", i)] = i;
+}
+
+function ord(s)
+{
+	# only first character is of interest
+	return _ord_[substr(s, 1, 1)];
+}
+```
+
+<p>
+  <code>_ord_init()</code> deserve some clarification if you're not used to
+  AWK: the caller is <em>not</em> expected to provide an argument for
+  <code>i</code>. All variables in AWK are global <em>except</em> function
+  parameters. <code>i</code> is declared as parameter only to create a
+  variable that is local to the function, that way <code>_ord_init()</code>
+  doesn't change the global state. While very unusual in "modern" languages
+  this is a very common AWK trick, so common in fact that it is documented in
+  the manpage:
+</p>
+
+<blockquote>
+  <cite title="awk(1)">
+    Parameters are passed by value if scalar and by reference if array name;
+    functions may be called recursively. Parameters are local to the function; all
+    other variables are global. Thus local variables may be created by providing
+    excess parameters in the function definition.
+  </cite>
+</blockquote>
+
+<p>
+  Finally, let's convert our <code>bytes</code> array into 32-bits words.
+  Remember that AWK doesn't have bitwise operators? Fortunately for us,
+  <span class="brand">GNU Awk</span>
+  <a href="https://www.gnu.org/software/gawk/manual/html_node/Bitwise-Functions.html">has built-in bitwise functions</a>.
+  So we'll start off with <span class="brand">GNU Awk</span> and then figure
+  out a way to implement bitwise functions later on.
+</p>
+
+```{"lang":"awk","linenos":false}
+# convert the array of bytes into an array of 32-bits words.
+# NOTE: words is 0-indexed.
+for (i = 1; i <= nbytes; i += 4) {
+	hi = or(lshift(bytes[i + 3], 8), bytes[i + 2]);
+	lo = or(lshift(bytes[i + 1], 8), bytes[i + 0]);
+	words[nwords++] = or(lshift(hi, 16), lo);
+}
+```
+<p class="codeblock-comment text-muted">
+  Notice that we've decided to break from the 1-index array convention of AWK
+  for the <code>words</code> array here. It will make some computation less
+  awkward and allow us to translate "smoothly" from
+  <span class="filename">Md5.c</span> (the reference C implementation) later
+  on.
+</p>
+
+<p>
+  How we order the input bytes into each word here is important:
+</p>
+
+<blockquote>
+  <cite title="RFC 1321 § 2. Terminology and Notation">
+    […] a sequence of bytes can be interpreted as a sequence of 32-bit words,
+    where each consecutive group of four bytes is interpreted as a word with
+    the low-order (least significant) byte given first.
+  </cite>
+</blockquote>
+
+<p>
+  Thus we use the first two bytes to compose the "low" 16 bits part of the
+  word, and the third and fourth bytes to compose the "high" 16 bits part.
+</p>
+
+<p>
+  If we wrap up we get:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active">
+      <a href="#step0-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation">
+      <a href="#step0-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="step0-code">
+      <%= include_code 'md5-awk/step0.awk', title: 'step0.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="step0-patch">
+      <%= include_code 'md5-awk/step0.patch', title: 'diff -u base.awk step0.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  We've added the variables used in the <code>md5()</code> function body to the
+  signature at line 27 and a bit of debug code (lines 41 — 45). Let's make a
+  quick test with <code>1234abcd\n</code>:
+</p>
+
+```{"linenos":false}
+% echo 1234abcd | xxd -g 1
+00000000: 31 32 33 34 61 62 63 64 0a                       1234abcd.
+```
+
+<p>
+  This should be familiar (see <span class="manpage">ascii(7)</span>), In
+  particular <code>0a</code> is the ASCII code for <code>\n</code>.
+</p>
+
+<p>
+  Let's run our script:
+</p>
+
+```{"linenos":false}
+% echo 1234abcd | gawk -f step0.awk
+   0: 34333231
+   1: 64636261
+   2: 0000000a
+```
+
+<p>
+  Alright! The byte order in each words is as expected: low-order (least
+  significant) byte given first.
+</p>
+
+
+<h2>Padding Bits and Length</h2>
+
+<p>
+  We'll go through <em>"3.1 Step 1. Append Padding Bits"</em> and
+  <em>"3.2 Step 2. Append Length"</em> of the RFC in one go, as I feel like
+  it's easier to visualize and understand both at once.  Basically, we need to
+  concatenate
+</p>
+
+<ol>
+  <li>the <em>input message</em>,
+  <li>some <em>padding</em>,
+  <li>the input message <em>length</em>.
+</ol>
+
+<p>
+  So that the result looks like this:
+</p>
+
+```{"linenos": false}
+[input message][padding][length]
+```
+
+<p>
+  The <em>padding</em> is at least a '1' bit, and then as many as '0' bits
+  needed so that the full result can be split into chunks of 512 bits. The
+  trick is to take into account that 64 bits will be "used" by the
+  <em>length</em>.
+</p>
+
+```{"lang":"awk","linenos":false}
+# Step 1. Append Padding Bits
+if (nbytes % 4 == 0) {
+	# the input size is congruent modulo 32, we need a new word to
+	# store the first '1' padding bit.
+	words[nwords++] = 0x80;
+} else {
+	# append a '1' bit in the byte just after the last input byte.
+	words[nwords - 1] = or(words[nwords - 1], lshift(0x80, (nbytes % 4) * 8));
+}
+# "fill" the remaining bytes with 0 until we're just shy two words of
+# having 16-Word Blocks.
+while ((nwords % 16) != 14)
+	nwords++;
+```
+<p class="codeblock-comment text-muted">
+  The loop at the end may be confusing if you don't remember that in AWK
+  <em>all uninitialized variables (including array values) are 0 by default</em>.
+</p>
+
+<p>
+  The <em>length</em> is represented on 64 bits as two 32-bits words (lower
+  word given first).
+</p>
+
+```{"lang":"awk","linenos":false}
+# Step 2. Append Length
+hi = rshift(nbytes * 8, 32);
+lo = (nbytes * 8) - lshift(hi, 32);
+words[nwords++] = lo;
+words[nwords++] = and(hi, 0xffffffff); # truncate to 32 bits
+```
+<p class="codeblock-comment text-muted">
+  We truncate the length if it is bigger than 2^64 as the RFC mandate, just in
+  case you feel like feeding more than 2097152 TiB to AWK.
+</p>
+
+<p>
+  Let's wrap up again:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active">
+      <a href="#step1-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation">
+      <a href="#step1-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="step1-code">
+      <%= include_code 'md5-awk/step1.awk', title: 'step1.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="step1-patch">
+      <%= include_code 'md5-awk/step1.patch', title: 'diff -u step0.awk step1.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  Using our previous <code>1234abcd\n</code> example, the result should look
+  like:
+</p>
+
+```{"linenos": false}
+                              512 bits
+ ____________________________________________________________________________
+/                                                                            \
+[0x31 0x32 0x33 0x34 0x61 ...][0x80 0x0 ...][0x48 0x0 0x0 0x0 0x0 0x0 0x0 0x0]
+\____________________________/\____________/\________________|_______________/
+        input message            padding       lower 32-bits   higher 32-bits
+                                            \________________________________/
+                                                          length
+```
+
+<p>
+  Let's test our script:
+</p>
+
+```{"linenos":false}
+% echo 1234abcd | gawk -f step1.awk
+   0: 34333231
+   1: 64636261
+   2: 0000800a
+   3: 00000000
+   4: 00000000
+   5: 00000000
+   6: 00000000
+   7: 00000000
+   8: 00000000
+   9: 00000000
+  10: 00000000
+  11: 00000000
+  12: 00000000
+  13: 00000000
+  14: 00000048
+  15: 00000000
+```
+
+<p>
+  We get as expected 16 32-bits words (i.e. 512 bits) in total,
+  <code>0x80</code> right after <code>\n</code> and some zeros to complete the
+  <em>padding</em>, and finally the <em>length</em> in the two last words.
+</p>
+
+
+<h2>MD Buffer initialization, Message processing and Output</h2>
+
+<p>
+  I will pass quickly through the MD5 rounds and setup, highlighting the
+  challenging parts.
+</p>
+
+<p>
+<em>Step 3.</em> is a trivial translation from
+<span class="filename">Md5.c</span> (lines 150 — 155).
+</p>
+
+```{"lang":"awk","linenos":false}
+# Step 3. Initialize MD Buffer
+state[0] = 0x67452301;
+state[1] = 0xefcdab89;
+state[2] = 0x98badcfe;
+state[3] = 0x10325476;
+```
+
+<p>
+  <em>Step 4.</em> was easy too. The main loop and <code>x</code> setup was
+  adapted directly from the RFC, while the rounds were inspired from
+  <span class="filename">Md5.c</span>. Here having <code>words</code>,
+  <code>state</code> and <code>x</code> 0-indexed (despite the AWK 1-indexed
+  arrays tradition) was key to translate almost verbatim the processing loop.
+</p>
+
+```{"lang":"awk"}
+# Step 4. Process Message in 16-Word Blocks
+# Process each 16-word block.
+for (i = 0; i < nwords; i += 16) {
+	# Copy block i into x.
+	for (j = 0; j < 16; j++)
+		x[j] = words[i + j];
+	a = state[0]; b = state[1]; c = state[2]; d = state[3];
+
+	# Round 1
+	a = FF(a, b, c, d, x[ 0], S11, 0xd76aa478);
+	d = FF(d, a, b, c, x[ 1], S12, 0xe8c7b756);
+	c = FF(c, d, a, b, x[ 2], S13, 0x242070db);
+	b = FF(b, c, d, a, x[ 3], S14, 0xc1bdceee);
+	a = FF(a, b, c, d, x[ 4], S11, 0xf57c0faf);
+	d = FF(d, a, b, c, x[ 5], S12, 0x4787c62a);
+	c = FF(c, d, a, b, x[ 6], S13, 0xa8304613);
+	b = FF(b, c, d, a, x[ 7], S14, 0xfd469501);
+	a = FF(a, b, c, d, x[ 8], S11, 0x698098d8);
+	d = FF(d, a, b, c, x[ 9], S12, 0x8b44f7af);
+	c = FF(c, d, a, b, x[10], S13, 0xffff5bb1);
+	b = FF(b, c, d, a, x[11], S14, 0x895cd7be);
+	a = FF(a, b, c, d, x[12], S11, 0x6b901122);
+	d = FF(d, a, b, c, x[13], S12, 0xfd987193);
+	c = FF(c, d, a, b, x[14], S13, 0xa679438e);
+	b = FF(b, c, d, a, x[15], S14, 0x49b40821);
+
+	# Round 2
+	a = GG(a, b, c, d, x[ 1], S21, 0xf61e2562);
+	d = GG(d, a, b, c, x[ 6], S22, 0xc040b340);
+	c = GG(c, d, a, b, x[11], S23, 0x265e5a51);
+	b = GG(b, c, d, a, x[ 0], S24, 0xe9b6c7aa);
+	a = GG(a, b, c, d, x[ 5], S21, 0xd62f105d);
+	d = GG(d, a, b, c, x[10], S22,  0x2441453);
+	c = GG(c, d, a, b, x[15], S23, 0xd8a1e681);
+	b = GG(b, c, d, a, x[ 4], S24, 0xe7d3fbc8);
+	a = GG(a, b, c, d, x[ 9], S21, 0x21e1cde6);
+	d = GG(d, a, b, c, x[14], S22, 0xc33707d6);
+	c = GG(c, d, a, b, x[ 3], S23, 0xf4d50d87);
+	b = GG(b, c, d, a, x[ 8], S24, 0x455a14ed);
+	a = GG(a, b, c, d, x[13], S21, 0xa9e3e905);
+	d = GG(d, a, b, c, x[ 2], S22, 0xfcefa3f8);
+	c = GG(c, d, a, b, x[ 7], S23, 0x676f02d9);
+	b = GG(b, c, d, a, x[12], S24, 0x8d2a4c8a);
+
+	# Round 3
+	a = HH(a, b, c, d, x[ 5], S31, 0xfffa3942);
+	d = HH(d, a, b, c, x[ 8], S32, 0x8771f681);
+	c = HH(c, d, a, b, x[11], S33, 0x6d9d6122);
+	b = HH(b, c, d, a, x[14], S34, 0xfde5380c);
+	a = HH(a, b, c, d, x[ 1], S31, 0xa4beea44);
+	d = HH(d, a, b, c, x[ 4], S32, 0x4bdecfa9);
+	c = HH(c, d, a, b, x[ 7], S33, 0xf6bb4b60);
+	b = HH(b, c, d, a, x[10], S34, 0xbebfbc70);
+	a = HH(a, b, c, d, x[13], S31, 0x289b7ec6);
+	d = HH(d, a, b, c, x[ 0], S32, 0xeaa127fa);
+	c = HH(c, d, a, b, x[ 3], S33, 0xd4ef3085);
+	b = HH(b, c, d, a, x[ 6], S34,  0x4881d05);
+	a = HH(a, b, c, d, x[ 9], S31, 0xd9d4d039);
+	d = HH(d, a, b, c, x[12], S32, 0xe6db99e5);
+	c = HH(c, d, a, b, x[15], S33, 0x1fa27cf8);
+	b = HH(b, c, d, a, x[ 2], S34, 0xc4ac5665);
+
+	# Round 4
+	a = II(a, b, c, d, x[ 0], S41, 0xf4292244);
+	d = II(d, a, b, c, x[ 7], S42, 0x432aff97);
+	c = II(c, d, a, b, x[14], S43, 0xab9423a7);
+	b = II(b, c, d, a, x[ 5], S44, 0xfc93a039);
+	a = II(a, b, c, d, x[12], S41, 0x655b59c3);
+	d = II(d, a, b, c, x[ 3], S42, 0x8f0ccc92);
+	c = II(c, d, a, b, x[10], S43, 0xffeff47d);
+	b = II(b, c, d, a, x[ 1], S44, 0x85845dd1);
+	a = II(a, b, c, d, x[ 8], S41, 0x6fa87e4f);
+	d = II(d, a, b, c, x[15], S42, 0xfe2ce6e0);
+	c = II(c, d, a, b, x[ 6], S43, 0xa3014314);
+	b = II(b, c, d, a, x[13], S44, 0x4e0811a1);
+	a = II(a, b, c, d, x[ 4], S41, 0xf7537e82);
+	d = II(d, a, b, c, x[11], S42, 0xbd3af235);
+	c = II(c, d, a, b, x[ 2], S43, 0x2ad7d2bb);
+	b = II(b, c, d, a, x[ 9], S44, 0xeb86d391);
+
+	state[0] = mod32bits(state[0] + a);
+	state[1] = mod32bits(state[1] + b);
+	state[2] = mod32bits(state[2] + c);
+	state[3] = mod32bits(state[3] + d);
+}
+```
+
+<p>
+  We'll need to setup the shift constants (<code>S11</code>, <code>S12</code>,
+  <code>S13</code> and so on) and also implement the round functions (namely
+  <code>FF</code>, <code>GG</code>, <code>HH</code>, and <code>II</code>).
+</p>
+<p>
+  An interesting point is that when <code>state</code> is updated (lines 81 —
+  84) <em>we have to use "modulo-2^32 addition"</em>. As it will be the case
+  for all additions, we'll write a <code>mod32bits()</code> helper function. If
+  you remember we already had to implement "32-bits truncation" for the "high
+  32-bits" part of length:
+</p>
+
+```{"lang":"awk","linenos":false}
+words[nwords++] = and(hi, 0xffffffff); # truncate to 32 bits
+```
+
+<p>
+  This will do fine for now:
+</p>
+
+```{"lang":"awk","linenos":false}
+function mod32bits(x) {
+	return and(x, 0xffffffff);
+}
+```
+
+<h3>Output</h3>
+
+<p>
+  Similarly to the last part of <code>MD5Final()</code>, the 32-bits
+  <code>state</code> words is "converted" into a <code>digest</code> of 16
+  bytes. Then, the hexadecimal string representation of the hash is built and
+  returned.
+</p>
+
+```{"lang":"awk","linenos":false}
+for (i = j = 0; j < 16; j += 4) {
+	digest[j + 0] = and(state[i], 0xff);
+	digest[j + 1] = and(rshift(state[i],    8), 0xff);
+	digest[j + 2] = and(rshift(state[i],   16), 0xff);
+	digest[j + 3] = and(rshift(state[i++], 24), 0xff);
+}
+for (i = 0; i < 16; i++)
+	ret = sprintf("%s%02x", ret, digest[i]);
+return ret;
+```
+
+<p>
+  It could be made shorter (and faster) but I've left it in two steps as I find
+  it more readable. The performance penalty should not be significant as this
+  part is O(1), in other words it run in constant time regardless of the input
+  message length.
+</p>
+
+<h3>Round functions</h3>
+
+<p>
+  Again, overall easy translation from the reference implementation:
+</p>
+
+```{"lang":"awk"}
+function F(x, y, z) {
+	return or(and(x, y), and(not(x), z));
+}
+
+function G(x, y, z) {
+	return or(and(x, z), and(y, not(z)));
+}
+
+function H(x, y, z) {
+	return xor(x, xor(y, z));
+}
+
+function I(x, y, z) {
+	return xor(y, or(x, not(z)));
+}
+
+function FF(a, b, c, d, x, s, ac) {
+	a = mod32bits(a + F(b, c, d) + x + ac);
+	a = ROTATE_LEFT(a, s);
+	a = mod32bits(a + b);
+	return a;
+}
+
+function GG(a, b, c, d, x, s, ac) {
+	a = mod32bits(a + G(b, c, d) + x + ac);
+	a = ROTATE_LEFT(a, s);
+	a = mod32bits(a + b);
+	return a;
+}
+
+function HH(a, b, c, d, x, s, ac) {
+	a = mod32bits(a + H(b, c, d) + x + ac);
+	a = ROTATE_LEFT(a, s);
+	a = mod32bits(a + b);
+	return a;
+}
+
+function II(a, b, c, d, x, s, ac) {
+	a = mod32bits(a + I(b, c, d) + x + ac);
+	a = ROTATE_LEFT(a, s);
+	a = mod32bits(a + b);
+	return a;
+}
+
+function ROTATE_LEFT(x, n) {
+	return or(mod32bits(lshift(x, n)), rshift(x, 32 - n));
+}
+
+function not(x) {
+	return mod32bits(compl(x));
+}
+```
+
+<p>
+  We need to be careful with both <code>lshift()</code> (line 46) and
+  <code>compl()</code> (line 50) as their return value may be greater than
+  2^32:
+</p>
+
+<blockquote>
+  <cite title="the GNU Awk manual">
+    For all of these functions, first the double-precision floating-point value
+    is converted to the widest C unsigned integer type, then the bitwise
+    operation is performed. If the result cannot be represented exactly as a C
+    double, leading nonzero bits are removed one by one until it can be
+    represented exactly. The result is then converted back into a C double. (If
+    you don’t understand this paragraph, don’t worry about it.)
+  </cite>
+</blockquote>
+
+<p>
+  "the widest C unsigned integer type" is likely to be represented on more than
+  32-bits, and so we're ensuring in both <code>ROTATE_LEFT()</code> and
+  <code>not()</code> to truncate the result to 32-bits.
+</p>
+
+<h3>Shift constants</h3>
+
+<p>
+  Simple and inspired by <code>_ord_init()</code> that we previously adapted:
+<p>
+
+```{"lang":"awk","linenos":false}
+function _md5_init() {
+	# MD5 shift constants setup.
+	S11 =  7; S12 = 12; S13 = 17; S14 = 22;
+	S21 =  5; S22 =  9; S23 = 14; S24 = 20;
+	S31 =  4; S32 = 11; S33 = 16; S34 = 23;
+	S41 =  6; S42 = 10; S43 = 15; S44 = 21;
+}
+```
+
+<p>
+  Finally it should work! Here is the final <span class="brand">GNU Awk</span>
+  code:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active">
+      <a href="#step2-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation">
+      <a href="#step2-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="step2-code">
+      <%= include_code 'md5-awk/step2.awk', title: 'step2.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="step2-patch">
+      <%= include_code 'md5-awk/step2.patch', title: 'diff -u step1.awk step2.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  Now, we (finally!) need a bunch of ASCII files for testing. Arbitrarily, I'll
+  use the <a href="https://sqlite.org/2017/sqlite-src-3160200.zip">SQLite</a>
+  sources files (i.e. files from the <span class="path">src/</span> directory)
+  because it's enough data without being too much (about 6.5MB for 200k sloc).
+</p>
+
+<p>
+  We start by computing the MD5 sum for each file using <code>openssl md5</code>
+  (because we mimic its output):
+</p>
+
+```{"linenos":false}
+% time openssl md5 sqlite-src-3160200/src/* | tee /tmp/openssl.md5.out
+MD5(sqlite-src-3160200/src/alter.c)= 7aa093f1a5ec92bf94eef2e068aa05da
+MD5(sqlite-src-3160200/src/analyze.c)= 9126f817e68ac2a625f816874f6f15e8
+MD5(sqlite-src-3160200/src/attach.c)= a945102cc7281d9f01b812be96f24123
+...
+MD5(sqlite-src-3160200/src/whereexpr.c)= 4af42e1cdcb59e98c9ca916f7fb0bb28
+MD5(sqlite-src-3160200/src/whereInt.h)= cb8d28f5101b56b4ebcb5e02077e99b9
+openssl md5 sqlite-src-3160200/src/*  0.01s user 0.00s system 71% cpu 0.017 total
+tee /tmp/openssl.md5.out  0.00s user 0.00s system 0% cpu 0.018 total
+% █
+```
+
+<p>
+  Let's do the same using our script, and finally <code>diff</code> the two
+  outputs to ensure that our implementation compute the hash correctly:
+</p>
+
+```{"linenos":false}
+% time gawk -f step2.awk sqlite-src-3160200/src/* | tee /tmp/step2.out
+MD5(sqlite-src-3160200/src/alter.c)= 7aa093f1a5ec92bf94eef2e068aa05da
+MD5(sqlite-src-3160200/src/analyze.c)= 9126f817e68ac2a625f816874f6f15e8
+MD5(sqlite-src-3160200/src/attach.c)= a945102cc7281d9f01b812be96f24123
+...
+MD5(sqlite-src-3160200/src/whereexpr.c)= 4af42e1cdcb59e98c9ca916f7fb0bb28
+MD5(sqlite-src-3160200/src/whereInt.h)= cb8d28f5101b56b4ebcb5e02077e99b9
+gawk -f step2.awk sqlite-src-3160200/src/*  15.85s user 0.13s system 99% cpu 15.985 total
+tee /tmp/step2.out  0.00s user 0.00s system 0% cpu 15.984 total
+% diff -u /tmp/step2.out /tmp/openssl.md5.out
+% █
+```
+
+<p>
+  Victory! Our implementation seems correct and take about 16s (on my machine)
+  to compute the all the MD5 hashes. The timings show that our implementation
+  is roughly <em>three order of magnitude slower</em> than openssl. It is
+  actually even worst as we can see that the openssl command was not using the
+  CPU about one third of the time (probably waiting on I/O).
+</p>
+<p>
+  Now we're not trying to race the openssl command of course, but it gives a
+  good idea of how impractical our implementation is for use beyond a coding
+  challenge. Furthermore, our implementation is going to be only slower from
+  now on.
+</p>
+
+<h2>From GNU Awk to AWK</h2>
+
+<p>
+  In order to focus on our initial problem of implementing the MD5 algorithm,
+  we've used two <span class="brand">GNU Awk</span> features unavailable in
+  AWK:
+</p>
+
+<ol>
+  <li>
+    hexadecimal numbers literal (e.g., <code>0xff</code>)
+  </li>
+  <li>
+    bitwise functions: <code>or</code>, <code>and</code>,
+    <code>xor</code>, <code>compl</code>, <code>lshift</code>, and
+    <code>rshift</code>.
+  </li>
+</ol>
+
+<p>
+  Now that we've successfully wrote the MD5 part, let's "port" our
+  implementation to AWK.
+</p>
+
+<h3>hexadecimal numbers and wrappers</h3>
+
+<p>
+  Replacing hexadecimal numbers is going to be trivial, just a pinch of Perl
+  one-liner and some handmade alignment fixes:
+</p>
+
+```{"linenos":false}
+% perl -pe 's/(.*)(0x[0-9a-fA-F]+)(.*)/$1.hex($2).$3." # ".$2/e' step2.awk
+```
+
+<p>
+  We'll also "wrap" the bitwise functions that we intent to re-implement, so
+  that their names don't clash with <span class="brand">GNU Awk</span> built-in
+  functions. Now the script looks like this:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active">
+      <a href="#step3-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation">
+      <a href="#step3-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="step3-code">
+      <%= include_code 'md5-awk/step3.awk', title: 'step3.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="step3-patch">
+      <%= include_code 'md5-awk/step3.patch', title: 'diff -u step2.awk step3.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  We'll assume that the hexadecimal change did not impact performances, but
+  "wrapping" the bitwise functions is expected to incur an overhead as they are
+  intensively used by the MD5 rounds:
+</p>
+
+```{"linenos":false}
+% time gawk -f step3.awk sqlite-src-3160200/src/* | tee /tmp/step3.out
+...
+gawk -f step3.awk sqlite-src-3160200/src/*  24.73s user 0.23s system 99% cpu 24.962 total
+tee /tmp/step3.out  0.00s user 0.00s system 0% cpu 24.961 total
+```
+
+<p>
+  If we compare to the <span class="filename">step2.awk</span> timing (about
+  16s), this version is ~56% slower (!) Hang on though, as I'm sure we can do
+  worst ;)
+</p>
+
+<h3>lshift &amp; rshift</h3>
+
+<p>
+  We need to implement the bitwise functions based on what AWK has to offer.
+  Because we feel like we have a hint, let's start with <code>lshift</code> and
+  <code>rshift</code>.
+</p>
+
+<p>
+  A classic "bit trick" in C (and others languages) to perform multiplication
+  and division on <em>unsigned</em> integer by a power of two is to use logical
+  left shift and logical right shift (respectively). Here we can do the
+  reverse, i.e. using multiplication and division to implement our
+  <code>bw_lshift</code> and <code>bw_rshift</code> functions:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation">
+      <a href="#step4-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation" class="active">
+      <a href="#step4-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane" id="step4-code">
+      <%= include_code 'md5-awk/step4.awk', title: 'step4.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane active" id="step4-patch">
+      <%= include_code 'md5-awk/step4.patch', title: 'diff -u step3.awk step4.awk' %>
+    </div>
+  </div>
+</div>
+<p class="codeblock-comment text-muted">
+  Surprisingly (at least to me), AWK has an exponentiation operator
+  <code>^</code> making computing power of two trivial.
+</p>
+
+<p>
+  Note that since <span class="brand">GNU Awk</span> <code>lshift</code>
+  <em>may</em> yield a number that is greater than 2^32 we already ensure to
+  <code>mod32bits</code> its result where needed (in <code>ROTATE_LEFT</code>).
+  Thus, our <code>bw_lshift</code> doesn't have to hold this invariant. Because
+  AWK division is a "real division" (i.e. not an integer division) we need to
+  drop the fractional part from <code>bw_rshift</code>'s result, hence the
+  <code>int()</code> truncation.
+</p>
+
+```{"linenos":false}
+% time gawk -f step4.awk sqlite-src-3160200/src/* | tee /tmp/step4.out
+...
+gawk -f step4.awk sqlite-src-3160200/src/*  25.50s user 0.20s system 100% cpu 25.687 total
+tee /tmp/step4.out  0.00s user 0.00s system 0% cpu 25.687 total
+```
+
+<p>
+  The running time increased by "only" about 3%, which is less that I
+  personally expected. My best guess is that <code>lshift</code> and
+  <code>rshift</code> are actually slower than what "we think" (we usually see
+  them as fast), because of the number representation dance that
+  <span class="brand">GNU Awk</span> has to do (from <code>double</code> to
+  <code>uintmax_t</code> and then back to <code>double</code>).
+</p>
+
+
+<h3>and, or, xor &amp; not</h3>
+
+<p>
+  Intuitively I thought about iterating through each bit using <code>%</code>
+  and shifting. Although this should "do the trick" it is awfully slow:
+</p>
+
+```{"lang":"awk","title":"example of bw_and() bit by bit"}
+function bw_and(x, y,    i, r) {
+        for (i = 0; i < 32; i++) {
+                r += ((x % 2) && (y % 2)) * (2 ^ i);
+                x = int(x / 2);
+                y = int(y / 2);
+        }
+        return r;
+}
+```
+<p class="codeblock-comment text-muted">
+  Line 3 can easily be adapted to implement <code>bw_or</code>,
+  <code>bw_xor</code> and <code>bw_not</code>.
+</p>
+
+<p>
+  Seeking a better solution, I found
+  <a
+    href="https://stackoverflow.com/questions/2982729/is-it-possible-to-implement-bitwise-operators-using-integer-arithmetic/28332394#28332394">this helpful SO answer</a>. The AND solution described looks
+  promising: by using a lookup table for each combination of 4 x 4 bits of
+  input we only have to loop 8 times (instead of 32). Additionally, XOR and IOR
+  are elegantly implemented on top of AND.
+</p>
+
+<p>
+  Instead of using a pre-computed lookup table, I've opted for bootstrapping it
+  using the slow bit-by-bit method. This will be more consistent with
+  <code>_ord_init</code>, yield cleaner and smaller code, and just feels more
+  in tune with the "pure AWK" vision that is the raison d'être of this
+  implementation.
+</p>
+
+<p>
+  Here is our version, translated in AWK (using multiple array subscripts) and
+  tweaked a bit (because the SO answer was for 16-bits numbers and we use
+  32-bits).
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation">
+      <a href="#step5-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation" class="active">
+      <a href="#step5-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane" id="step5-code">
+      <%= include_code 'md5-awk/step5.awk', title: 'step5.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane active" id="step5-patch">
+      <%= include_code 'md5-awk/step5.patch', title: 'diff -u step4.awk step5.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  Let's test our changes:
+</p>
+
+```{"linenos":false}
+% time gawk -f step5.awk sqlite-src-3160200/src/* | tee /tmp/step5.out
+...
+gawk -f step5.awk sqlite-src-3160200/src/*  541.14s user 0.19s system 100% cpu 9:01.32 total
+tee /tmp/step5.out  0.00s user 0.00s system 0% cpu 9:01.32 total
+```
+
+<p>
+  Now the good news is that our script doesn't use
+  <span class="brand">GNU Awk</span> bitwise function anymore, and consequently
+  we can also test with <span class="brand">one-true-awk:</span> too:
+</p>
+
+```{"linenos":false}
+% time awk -f step5.awk sqlite-src-3160200/src/* | tee /tmp/step5.out
+...
+awk -f step5.awk sqlite-src-3160200/src/*  1164.34s user 0.96s system 100% cpu 19:25.19 total
+tee /tmp/step5.out  0.00s user 0.00s system 0% cpu 19:25.19 total
+```
+
+<p>
+  Yay! We've succeeded in our attempt to implement MD5 in AWK! That's a big
+  step as we can test with several AWK implementations from now on. At this
+  point though the performances are horrible (even for my coding challenge
+  context): the script is roughly <em>20 times</em> slower than the previous
+  version.  Also worth noting, <span class="brand">GNU Awk</span> is about two
+  times faster than <span class="brand">one-true-awk</span> for this test.
+</p>
+
+<h2>Improvements</h2>
+
+<p>
+  While we didn't worry too much about performances in our porting steps, we've
+  kept an eye on the impact of each change. Thus, we should have a good idea of
+  what should be improved, but let's run our script through
+  <span class="brand">GNU Awk</span>'s profiler anyway (yes, it has one):
+</p>
+
+```{"linenos":false,"title":"profiling"}
+% gawk --profile=step5.prof -f step5.awk sqlite-src-3160200/src/* | tee /tmp/step5.out
+% awk '$2 == "function" {print}' step5.prof | sort -n
+     1  function _bitwise_init(a, b, x, y, i)
+     1  function _md5_init()
+     1  function _ord_init(i)
+   149  function md5(input, nbytes, chars, i, bytes, hi, lo, words, nwords, state, a, b, c, d, j, x, digest, ret)
+1586192  function FF(a, b, c, d, x, s, ac)
+1586192  function F(x, y, z)
+1586192  function GG(a, b, c, d, x, s, ac)
+1586192  function G(x, y, z)
+1586192  function HH(a, b, c, d, x, s, ac)
+1586192  function H(x, y, z)
+1586192  function II(a, b, c, d, x, s, ac)
+1586192  function I(x, y, z)
+4758576  function bw_not(x)
+6338697  function ord(s)
+6344768  function ROTATE_LEFT(x, n)
+6346705  function bw_rshift(x, n)
+11099214  function bw_lshift(x, n)
+15857641  function bw_or(x, y)
+19431001  function mod32bits(x)
+41232434  function bw_xor(x, y)
+82868228  function bw_and(x, y, i, r)
+```
+
+<p>
+ For something more visual, here is a (handmade by yours truly) callgraph:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active">
+      <a href="#step5-graph" aria-controls="graph" role="tab" data-toggle="tab">graph</a>
+    </li>
+    <li role="presentation">
+      <a href="#step5-dot" aria-controls="source" role="tab" data-toggle="tab">source</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="step5-graph">
+      <img class="center img-responsive" style="margin-top: 1em" src="<%= static_url '/code/md5-awk/step5.dot.png' %>" alt="step5.awk call graph">
+    </div>
+    <div role="tabpanel" class="tab-pane" id="step5-dot">
+      <%= include_code 'md5-awk/step5.dot', lang: 'dot', title: 'step5.dot' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  We see that there is a ton of pressure on <code>bw_and</code>. Sadly, the
+  profiler is only able to report how many time each function was called. The
+  running time of each function would have been very useful, but we'll have to
+  "play it by ear". From the timings we gathered so far we think that: </p>
+
+<ul>
+  <li>
+    From <span class="filename">step3.awk</span> we learned that  calling
+    functions is costly.
+  </li>
+  <li>
+    <span class="filename">step4.awk</span> showed that both
+    <code>bw_lshift</code> and <code>bw_rshift</code> performances are close to
+    before porting, so they're not on our radar to optimize (hence the
+    <span style="color: #268bd2">blue color</span> in the callgraph).
+  </li>
+  <li>
+    Since <span class="filename">step5.awk</span> <code>bw_and</code> has
+    become <em>really slow</em> (hence the
+    <span style="color: #dd4444">red color</span> in the callgraph), but we
+    think the memory vs runtime tradeoff is acceptable.
+  </li>
+</ul>
+
+<h3>bw_or</h3>
+
+<p>
+  Obviously our <code>bw_or</code> function can be improved: it calls
+  <code>bw_xor</code> twice and <code>bw_and</code> once, for a total of "3
+  times <code>bw_and</code> cost". The most straightforward refactoring is to
+  mimic <code>bw_and</code> implementation and should make <code>bw_or</code>
+  three time faster:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation">
+      <a href="#step6-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation" class="active">
+      <a href="#step6-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane" id="step6-code">
+      <%= include_code 'md5-awk/step6.awk', title: 'step6.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane active" id="step6-patch">
+      <%= include_code 'md5-awk/step6.patch', title: 'diff -u step5.awk step6.awk' %>
+    </div>
+  </div>
+</div>
+
+<p>
+  Although we could easily do the same for <code>bw_not</code> and
+  <code>bw_xor</code>, their "perceived <code>bw_and</code> cost" is 1, and so
+  there is not much to be gain. Let's see the impact of our change:
+</p>
+
+```{"linenos":false}
+% time gawk -f step6.awk sqlite-src-3160200/src/* | tee /tmp/step6.out
+...
+gawk -f step6.awk sqlite-src-3160200/src/*  350.09s user 0.14s system 100% cpu 5:50.17 total
+tee /tmp/step6.out  0.00s user 0.00s system 0% cpu 5:50.17 total
+```
+<p>
+  That's a 35% improvement, well worth it. Let's focus now on the next
+  "obvious" target.
+</p>
+
+<h3>mod32bits</h3>
+
+<p>
+  Originally, we wrote <code>mod32bits</code> using <code>and</code> because it
+  was "fast". Now the modulo <code>%</code> operator is very likely to be
+  faster than <code>bw_and</code> and we can easily just get rid of the
+  <code>mod32bits</code> function:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation">
+      <a href="#step7-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation" class="active">
+      <a href="#step7-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane" id="step7-code">
+      <%= include_code 'md5-awk/step7.awk', title: 'step7.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane active" id="step7-patch">
+      <%= include_code 'md5-awk/step7.patch', title: 'diff -u step6.awk step7.awk' %>
+    </div>
+  </div>
+</div>
+
+```{"linenos":false}
+% time gawk -f step7.awk sqlite-src-3160200/src/* | tee /tmp/step7.out
+...
+gawk -f step7.awk sqlite-src-3160200/src/*  225.86s user 0.20s system 99% cpu 3:46.08 total
+tee /tmp/step7.out  0.00s user 0.00s system 0% cpu 3:46.08 total
+```
+
+<p>
+  Again, about 35% faster and arguably a bit more readable too.
+</p>
+
+<h3>ROTATE_LEFT</h3>
+
+<p>
+  By taking a look at <code>ROTATE_LEFT</code>, we see that we can use addition
+  instead of OR'ing between the high and low part of the result, because there
+  is no "overlap" (i.e. no chance of carry). In other words, addition and OR
+  in this particular case will yield the same result, but the addition will be
+  faster than our slow <code>bw_or</code> implementation.
+</p>
+
+<p>
+  We can apply this logic in a few other places and also to <code>bw_and</code>
+  by using modulo instead when we only case about the last few bits:
+</p>
+
+<div>
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation">
+      <a href="#step8-code" aria-controls="code" role="tab" data-toggle="tab">code</a>
+    </li>
+    <li role="presentation" class="active">
+      <a href="#step8-patch" aria-controls="patch" role="tab" data-toggle="tab">patch</a>
+    </li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane" id="step8-code">
+      <%= include_code 'md5-awk/step8.awk', title: 'step8.awk', lang: 'awk' %>
+    </div>
+    <div role="tabpanel" class="tab-pane active" id="step8-patch">
+      <%= include_code 'md5-awk/step8.patch', title: 'diff -u step7.awk step8.awk' %>
+    </div>
+  </div>
+</div>
+
+```{"linenos":false}
+% time gawk -f step8.awk sqlite-src-3160200/src/* | tee /tmp/step8.out
+...
+gawk -f step8.awk sqlite-src-3160200/src/*  159.22s user 0.20s system 99% cpu 2:39.42 total
+tee /tmp/step8.out  0.00s user 0.00s system 0% cpu 2:39.42 total
+```
+
+<p>
+  30% faster although this was a tricky patch. Overall we've made very good
+  progress on performances, going from about nine minutes to two and a half.
+</p>
+
+<h2>Wrap-up</h2>
+
+<p>
+  At that point I am happy with the result. I guess it could be even more
+  optimized but I'm not sure where to start (we could inline more functions as
+  we've seen that function call are costly but that will come with a heavy
+  readability penalty).
+</p>
+
+<p>
+  Through this post we've implemented MD5 from the RFC in
+  <span class="brand">GNU Awk</span> to simplify the problem at first, then
+  refactored the code to port it to "standard" AWK, and finally made
+  optimizations. You can also find the full code
+  <a href="https://github.com/kAworu/md5.awk">on GitHub</a>. Thank you for
+  reading and I hope you had as much fun as I did :)
+</p>

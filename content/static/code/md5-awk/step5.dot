@@ -1,0 +1,16 @@
+digraph G {
+    ROTATE_LEFT -> bw_lshift;
+    ROTATE_LEFT -> bw_rshift;
+    ROTATE_LEFT -> mod32bits;
+    ROTATE_LEFT -> bw_or;
+    mod32bits   -> bw_and;
+    bw_not      -> bw_xor;
+    bw_or       -> bw_xor;
+    bw_or       -> bw_xor;
+    bw_or       -> bw_and;
+    bw_xor      -> bw_and;
+
+    bw_and    [color="#dd4444"];
+    bw_lshift [color="#268bd2"];
+    bw_rshift [color="#268bd2"];
+}

@@ -1,0 +1,29 @@
+--- step0.awk	2017-02-20 18:24:03.945454000 +0100
++++ step1.awk	2017-02-20 18:24:03.945458000 +0100
+@@ -36,6 +36,26 @@
+ 		words[nwords++] = or(lshift(hi, 16), lo);
+ 	}
+ 
++	# Step 1. Append Padding Bits
++	if (nbytes % 4 == 0) {
++		# the input size is congruent modulo 32, we need a new word to
++		# store the first '1' padding bit.
++		words[nwords++] = 0x80;
++	} else {
++		# append a '1' bit in the byte just after the last input byte.
++		words[nwords - 1] = or(words[nwords - 1], lshift(0x80, (nbytes % 4) * 8));
++	}
++	# "fill" the remaining bytes with 0 until we're just shy two words of
++	# having 16-Word Blocks.
++	while ((nwords % 16) != 14)
++		nwords++;
++
++	# Step 2. Append Length
++	hi = rshift(nbytes * 8, 32);
++	lo = (nbytes * 8) - lshift(hi, 32);
++	words[nwords++] = lo;
++	words[nwords++] = and(hi, 0xffffffff); # truncate to 32 bits
++
+ 	# XXX: debug words and exit:
+ 	for (i = 0; i < nwords; i++)
+ 		printf "%4d: %08x\n", i, words[i];

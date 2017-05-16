@@ -1,0 +1,75 @@
+--- step6.awk	2017-03-04 12:57:02.936165000 +0100
++++ step7.awk	2017-03-07 12:08:08.666000000 +0100
+@@ -57,7 +57,7 @@
+ 	hi = bw_rshift(nbytes * 8, 32);
+ 	lo = (nbytes * 8) - bw_lshift(hi, 32);
+ 	words[nwords++] = lo;
+-	words[nwords++] = mod32bits(hi); # truncate to 32 bits
++	words[nwords++] = hi % (2 ^ 32); # truncate to 32 bits
+ 
+ 	# Step 3. Initialize MD Buffer
+ 	state[0] = 1732584193; # 0x67452301
+@@ -145,10 +145,10 @@
+ 		c = II(c, d, a, b, x[ 2], S43,  718787259); # 0x2ad7d2bb
+ 		b = II(b, c, d, a, x[ 9], S44, 3951481745); # 0xeb86d391
+ 
+-		state[0] = mod32bits(state[0] + a);
+-		state[1] = mod32bits(state[1] + b);
+-		state[2] = mod32bits(state[2] + c);
+-		state[3] = mod32bits(state[3] + d);
++		state[0] = (state[0] + a) % (2 ^ 32);
++		state[1] = (state[1] + b) % (2 ^ 32);
++		state[2] = (state[2] + c) % (2 ^ 32);
++		state[3] = (state[3] + d) % (2 ^ 32);
+ 	}
+ 
+ 	for (i = j = 0; j < 16; j += 4) {
+@@ -179,39 +179,35 @@
+ }
+ 
+ function FF(a, b, c, d, x, s, ac) {
+-	a = mod32bits(a + F(b, c, d) + x + ac);
++	a = (a + F(b, c, d) + x + ac) % (2 ^ 32);
+ 	a = ROTATE_LEFT(a, s);
+-	a = mod32bits(a + b);
++	a = (a + b) % (2 ^ 32);
+ 	return a;
+ }
+ 
+ function GG(a, b, c, d, x, s, ac) {
+-	a = mod32bits(a + G(b, c, d) + x + ac);
++	a = (a + G(b, c, d) + x + ac) % (2 ^ 32);
+ 	a = ROTATE_LEFT(a, s);
+-	a = mod32bits(a + b);
++	a = (a + b) % (2 ^ 32);
+ 	return a;
+ }
+ 
+ function HH(a, b, c, d, x, s, ac) {
+-	a = mod32bits(a + H(b, c, d) + x + ac);
++	a = (a + H(b, c, d) + x + ac) % (2 ^ 32);
+ 	a = ROTATE_LEFT(a, s);
+-	a = mod32bits(a + b);
++	a = (a + b) % (2 ^ 32);
+ 	return a;
+ }
+ 
+ function II(a, b, c, d, x, s, ac) {
+-	a = mod32bits(a + I(b, c, d) + x + ac);
++	a = (a + I(b, c, d) + x + ac) % (2 ^ 32);
+ 	a = ROTATE_LEFT(a, s);
+-	a = mod32bits(a + b);
++	a = (a + b) % (2 ^ 32);
+ 	return a;
+ }
+ 
+ function ROTATE_LEFT(x, n) {
+-	return bw_or(mod32bits(bw_lshift(x, n)), bw_rshift(x, 32 - n));
+-}
+-
+-function mod32bits(x) {
+-	return bw_and(x, 4294967295); # 0xffffffff
++	return bw_or((bw_lshift(x, n)) % (2 ^ 32), bw_rshift(x, 32 - n));
+ }
+ 
+ function bw_not(x) {

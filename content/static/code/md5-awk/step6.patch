@@ -1,0 +1,43 @@
+--- step5.awk	2017-02-21 14:58:31.499103000 +0100
++++ step6.awk	2017-03-04 12:57:02.936165000 +0100
+@@ -228,15 +228,20 @@
+ 
+ function bw_and(x, y,    i, r) {
+ 	for (i = 0; i < 32; i += 4) {
+-		r = r / (2 ^ 4) + andlookup[x % 16, y % 16] * (2 ^ 28);
++		r = r / (2 ^ 4) + bw_lookup["and", x % 16, y % 16] * (2 ^ 28);
+ 		x = int(x / (2 ^ 4));
+ 		y = int(y / (2 ^ 4));
+ 	}
+ 	return r;
+ }
+ 
+-function bw_or(x, y) {
+-	return bw_xor(bw_xor(x, y), bw_and(x, y));
++function bw_or(x, y,    i, r) {
++	for (i = 0; i < 32; i += 4) {
++		r = r / (2 ^ 4) + bw_lookup["or", x % 16, y % 16] * (2 ^ 28);
++		x = int(x / (2 ^ 4));
++		y = int(y / (2 ^ 4));
++	}
++	return r;
+ }
+ 
+ function bw_xor(x, y) {
+@@ -257,13 +262,14 @@
+ }
+ 
+ function _bitwise_init(    a, b, x, y, i) {
+-	# generate the lookup table for bw_and().
++	# generate the bw_lookup table used by bw_and() and bw_or().
+ 	for (a = 0; a < 16; a++) {
+ 		for (b = 0; b < 16; b++) {
+ 			x = a;
+ 			y = b;
+ 			for (i = 0; i < 4; i++) {
+-				andlookup[a, b] += ((x % 2) && (y % 2)) * (2 ^ i);
++				bw_lookup["and", a, b] += ((x % 2) && (y % 2)) * (2 ^ i);
++				bw_lookup["or",  a, b] += ((x % 2) || (y % 2)) * (2 ^ i);
+ 				x = int(x / 2);
+ 				y = int(y / 2);
+ 			}
