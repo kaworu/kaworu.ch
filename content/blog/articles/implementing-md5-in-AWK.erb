@@ -761,10 +761,10 @@ tee /tmp/step2.out  0.00s user 0.00s system 0% cpu 15.984 total
 
 <p>
   Victory! Our implementation seems correct and take about 16s (on my machine)
-  to compute the all the MD5 hashes. The timings show that our implementation
-  is roughly <em>three order of magnitude slower</em> than openssl. It is
-  actually even worst as we can see that the openssl command was not using the
-  CPU about one third of the time (probably waiting on I/O).
+  to compute all the MD5 hashes. The timings show that our implementation is
+  roughly <em>three order of magnitude slower</em> than openssl. It is actually
+  even worst as we can see that the openssl command was not using the CPU about
+  one third of the time (probably waiting on I/O).
 </p>
 <p>
   Now we're not trying to race the openssl command of course, but it gives a
@@ -852,7 +852,7 @@ tee /tmp/step3.out  0.00s user 0.00s system 0% cpu 24.961 total
 <p>
   If we compare to the <span class="filename">step2.awk</span> timing (about
   16s), this version is ~56% slower (!) Hang on though, as I'm sure we can do
-  worst ;)
+  worse ;)
 </p>
 
 <h3>lshift &amp; rshift</h3>
@@ -951,7 +951,7 @@ function bw_and(x, y,    i, r) {
   <a
     href="https://stackoverflow.com/questions/2982729/is-it-possible-to-implement-bitwise-operators-using-integer-arithmetic/28332394#28332394">this helpful SO answer</a>. The AND solution described looks
   promising: by using a lookup table for each combination of 4 x 4 bits of
-  input we only have to loop 8 times (instead of 32). Additionally, XOR and IOR
+  input we only have to loop 8 times (instead of 32). Additionally, XOR and OR
   are elegantly implemented on top of AND.
 </p>
 
@@ -1213,7 +1213,7 @@ tee /tmp/step7.out  0.00s user 0.00s system 0% cpu 3:46.08 total
 
 <p>
   We can apply this logic in a few other places and also to <code>bw_and</code>
-  by using modulo instead when we only case about the last few bits:
+  by using modulo instead when we only care about the last few bits:
 </p>
 
 <div>
