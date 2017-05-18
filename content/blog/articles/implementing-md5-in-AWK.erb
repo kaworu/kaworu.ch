@@ -158,7 +158,7 @@ function ord(s)
 
 <p>
   <code>_ord_init()</code> deserve some clarification if you're not used to
-  AWK: the caller is <em>not</em> expected to provide an argument for
+  AWK: the caller is <em>not</em> expected to actually provide a value for
   <code>i</code>. All variables in AWK are global <em>except</em> function
   parameters. <code>i</code> is declared as parameter only to create a
   variable that is local to the function, that way <code>_ord_init()</code>
@@ -176,7 +176,7 @@ function ord(s)
   </cite>
 </blockquote>
 
-<p>
+<p id="words-index-prelude">
   Finally, let's convert our <code>bytes</code> array into 32-bits words.
   Remember that AWK doesn't have bitwise operators? Fortunately for us,
   <span class="brand">GNU Awk</span>
@@ -199,7 +199,7 @@ for (i = 1; i <= nbytes; i += 4) {
   for the <code>words</code> array here. It will make some computation less
   awkward and allow us to translate "smoothly" from
   <span class="filename">Md5.c</span> (the reference C implementation) later
-  on.
+  on. <a href="#words-index-reason"><sup>↓ Padding and Length</sup></a>
 </p>
 
 <p>
@@ -325,7 +325,9 @@ while ((nwords % 16) != 14)
 ```
 <p class="codeblock-comment text-muted">
   The loop at the end may be confusing if you don't remember that in AWK
-  <em>all uninitialized variables (including array values) are 0 by default</em>.
+  <em>all uninitialized variables (including array values) are 0 by
+    default</em>. As a result, we "only" need to increment the array size to
+  "append zeros" to the array.
 </p>
 
 <p>
@@ -438,12 +440,13 @@ state[2] = 0x98badcfe;
 state[3] = 0x10325476;
 ```
 
-<p>
+<p id="words-index-reason">
   <em>Step 4.</em> was easy too. The main loop and <code>x</code> setup was
   adapted directly from the RFC, while the rounds were inspired from
   <span class="filename">Md5.c</span>. Here having <code>words</code>,
   <code>state</code> and <code>x</code> 0-indexed (despite the AWK 1-indexed
   arrays tradition) was key to translate almost verbatim the processing loop.
+  <a href="#words-index-prelude"><sup>↑ massaging the input</sup></a>
 </p>
 
 ```{"lang":"awk"}
@@ -716,10 +719,10 @@ function _md5_init() {
 </div>
 
 <p>
-  Now, we (finally!) need a bunch of ASCII files for testing. Arbitrarily, I'll
-  use the <a href="https://sqlite.org/2017/sqlite-src-3160200.zip">SQLite</a>
-  sources files (i.e. files from the <span class="path">src/</span> directory)
-  because it's enough data without being too much (about 6.5MB for 200k sloc).
+  Now, we need a bunch of ASCII files for testing. Arbitrarily, I'll use the
+  <a href="https://sqlite.org/2017/sqlite-src-3160200.zip">SQLite</a> sources
+  files (i.e. files from the <span class="path">src/</span> directory) because
+  it's enough data without being too much (about 6.5MB for 200k sloc).
 </p>
 
 <p>
@@ -1005,7 +1008,7 @@ tee /tmp/step5.out  0.00s user 0.00s system 0% cpu 9:01.32 total
 <p>
   Now the good news is that our script doesn't use
   <span class="brand">GNU Awk</span> bitwise function anymore, and consequently
-  we can also test with <span class="brand">one-true-awk:</span> too:
+  we can also test with <span class="brand">one-true-awk</span> too:
 </p>
 
 ```{"linenos":false}
@@ -1018,8 +1021,8 @@ tee /tmp/step5.out  0.00s user 0.00s system 0% cpu 19:25.19 total
 <p>
   Yay! We've succeeded in our attempt to implement MD5 in AWK! That's a big
   step as we can test with several AWK implementations from now on. At this
-  point though the performances are horrible (even for my coding challenge
-  context): the script is roughly <em>20 times</em> slower than the previous
+  point though, the performances are horrible even for my coding challenge
+  context: the script is roughly <em>20 times</em> slower than the previous
   version.  Also worth noting, <span class="brand">GNU Awk</span> is about two
   times faster than <span class="brand">one-true-awk</span> for this test.
 </p>
@@ -1206,9 +1209,10 @@ tee /tmp/step7.out  0.00s user 0.00s system 0% cpu 3:46.08 total
 <p>
   By taking a look at <code>ROTATE_LEFT</code>, we see that we can use addition
   instead of OR'ing between the high and low part of the result, because there
-  is no "overlap" (i.e. no chance of carry). In other words, addition and OR
-  in this particular case will yield the same result, but the addition will be
-  faster than our slow <code>bw_or</code> implementation.
+  is no "overlap" between the operands "interesting bits" (i.e. no chance of
+  carry). In other words, addition and OR in this particular case will yield
+  the same result (but the addition will be faster than our slow
+  <code>bw_or</code> implementation).
 </p>
 
 <p>
