@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Dovecot antispam with Rspamd (part 1)"
 created_at: 2014-03-25 20:00:47 +0100
-updated_at: 2016-04-26 15:39:20 +0200
+updated_at: 2017-05-23 11:35:51 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -42,12 +42,24 @@ tags: [sysadmin]
         This is the first part of the <span class="brand">Dovecot</span> &amp;
         <span class="brand">Rspamd</span> integration setup, talking about
         <span class="brand">Rspamd</span> autolearn integration with
-        <a href="http://wiki2.dovecot.org/Plugins/Antispam"><span class="brand">Dovecot</span> antispam plugin</a>.
+        <span class="brand">Dovecot</span> antispam plugin.
+    </p>
     <p>
         Part 2 about mail filtering using
-        <a href="http://wiki2.dovecot.org/Pigeonhole/Sieve/Extensions/SpamtestVirustest"><span class="brand">Dovecot</span> spamtest</a>
-        is
+        <span class="brand">Dovecot</span> spamtest is
         <a href="<%= article_path 'dovecot-antispam-with-rspamd-part2' %>">here</a>.
+    </p>
+</div>
+
+<div class="alert alert-warning">
+    <p>
+        <span class="glyphicon glyphicon-warning-sign"></span> both
+        <span class="brand">Dovecot</span> antispam plugins are
+        <em>deprecated</em> in favour of
+        <a href="https://wiki2.dovecot.org/HowTo/AntispamWithSieve">AntispamWithSieve</a>.
+        If you have pigeonhole v0.4.14 or later, you should definitely
+        <a href="https://wiki2.dovecot.org/HowTo/AntispamWithSieve">use IMAPSieve instead</a>.
+    </p>
 </div>
 
 <h2>Figuring out your dovecot antispam plugin version</h2>
@@ -101,6 +113,7 @@ protocol imap {
 <p>
     Then configure the plugin (pick your matching version):
 </p>
+
 <div class="clearfix">
     <div class="row">
         <div class="col-md-6">
@@ -131,7 +144,12 @@ plugin {
         </div>
     </div>
 </div>
-<div class="codeblock-comment alert alert-info">
+<style>
+  .col-md-6 .panel {
+    margin-bottom: 0px;
+  }
+</style>
+<div class="codeblock-comment alert alert-info" style="margin-top: 0">
     <ol>
         <li value="2">
             This is the part that differ between the <strong>original</strong>
@@ -187,7 +205,7 @@ plugin {
     example.
 <p>
     Be extra careful if you need to tweak
-    <code>antispam_mail_sendmail_args</code>: it uses </code>;</code>
+    <code>antispam_mail_sendmail_args</code>: it uses <code>;</code>
     as separator for arguments. I remember having a lot of troubles while
     debugging because of that.
 
