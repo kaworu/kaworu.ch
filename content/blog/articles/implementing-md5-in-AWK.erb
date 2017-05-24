@@ -953,7 +953,7 @@ function bw_and(x, y,    i, r) {
 <p>
   Seeking a better solution, I found
   <a
-    href="https://stackoverflow.com/questions/2982729/is-it-possible-to-implement-bitwise-operators-using-integer-arithmetic/28332394#28332394">this helpful SO answer</a>. The AND solution described looks
+    href="https://stackoverflow.com/questions/2982729/is-it-possible-to-implement-bitwise-operators-using-integer-arithmetic/28332394#28332394">this helpful StackOverflow answer</a>. The AND solution described looks
   promising: by using a lookup table for each combination of 4 x 4 bits of
   input we only have to loop 8 times (instead of 32). Additionally, XOR and OR
   are elegantly implemented on top of AND.
@@ -969,8 +969,8 @@ function bw_and(x, y,    i, r) {
 
 <p>
   Here is our version, translated in AWK (using multiple array subscripts) and
-  tweaked a bit (because the SO answer was for 16-bits numbers and we use
-  32-bits).
+  tweaked a bit (because the StackOverflow answer was for 16-bits numbers and
+  we use 32-bits).
 </p>
 
 <div>
