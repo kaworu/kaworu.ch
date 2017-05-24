@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Strong crypt scheme with Dovecot, Postfixadmin and Roundcube"
 created_at: 2016-04-20 19:31:37 +0200
-updated_at: 2016-04-25 14:45:24 +0200
+updated_at: 2017-05-24 21:08:07 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -217,6 +217,17 @@ SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
 </p>
 ```{"title":"plugins/password/config.inc.php","lang":"php"}
 <?php
+
+// Password Plugin options
+// -----------------------
+// ...
+// force saving when the new password is the same as the current password, so
+// that it uses the latest configured password scheme.
+$rcmail_config['password_force_save'] = true;
+// ...
+
+// SQL Driver options
+// ------------------
 // ...
 // The SQL query used to change the password.
 // The query can contain the following macros that will be expanded as follows:
@@ -252,19 +263,19 @@ $rcmail_config['password_dovecotpw_with_method'] = true;
 ```
 <div class="codeblock-comment alert alert-info">
     <ol>
-        <li value="18">
+        <li value="31">
             YMMV regarding the <code>password_query</code> but the important
             part is to use <code>%D</code> as it is the dovecotpw-crypted
             version.
         </li>
-        <li value="25">
+        <li value="38">
             Don't forget to adapt the <code>-r</code> option value to the
             number of rounds found in the last step. Also check your doveadm
             executable path
             (<span class="filename">/usr/local/bin/doveadm</span> in this
             example).
         </li>
-        <li value="31">
+        <li value="44">
             We use crypt method prefix in <code>%D</code> to be consistent with
             <span class="brand">Postfixadmin</span>.
         </li>
