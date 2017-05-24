@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Strong crypt scheme with Dovecot, Postfixadmin and Roundcube"
 created_at: 2016-04-20 19:31:37 +0200
-updated_at: 2017-05-24 21:08:07 +0200
+updated_at: 2017-05-24 23:20:24 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -128,7 +128,7 @@ $CONF['dovecotpw'] = "/usr/local/bin/doveadm pw -r 12";
             Don't forget to adapt the <code>-r</code> option value to the
             number of rounds found in the last step. Also check your doveadm
             executable path
-            (<span class="filename">/usr/local/bin/doveadm</span> in this
+            (<span class="path">/usr/local/bin/doveadm</span> in this
             example).
         </li>
     </ol>
@@ -272,7 +272,7 @@ $rcmail_config['password_dovecotpw_with_method'] = true;
             Don't forget to adapt the <code>-r</code> option value to the
             number of rounds found in the last step. Also check your doveadm
             executable path
-            (<span class="filename">/usr/local/bin/doveadm</span> in this
+            (<span class="path">/usr/local/bin/doveadm</span> in this
             example).
         </li>
         <li value="44">
@@ -311,9 +311,237 @@ SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
     </li>
 </ol>
 
+<h2>Automatic password scheme migration</h2>
+<p>
+    <span class="brand">Dovecot</span> has a facility to run
+    <a href="https://wiki2.dovecot.org/PostLoginScripting">post-login script</a>
+    which can be used to
+    <a href="https://wiki2.dovecot.org/HowTo/ConvertPasswordSchemes">migrate mailbox password</a>
+    to our freshly configured scheme.
+</p>
+
+<h3>Dovecot config</h3>
+<p>
+    First, the <code>password_query</code> of
+    <span class="filename">dovecot-sql.conf.ext</span> must be adapted to setup
+    the plaintext password in the Dovecot environment. This is what we need to
+    add to the <code>SELECT</code> query:
+</p>
+
+```{"lang":"sql","linenos":false}
+'%w' AS userdb_plain_pass
+```
+
+<p>
+  For example, this is what my <code>password_query</code> looked like before:
+</p>
+
+```{"lang":"sql","linenos":false}
+password_query = SELECT password, CONCAT('/home/vmail/', maildir) AS userdb_home, '5000' AS userdb_uid, '5000' AS userdb_gid, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
+```
+
+<p>
+  And now:
+</p>
+
+```{"lang":"sql","linenos":false}
+password_query = SELECT password, '%w' AS userdb_plain_pass, CONCAT('/home/vmail/', maildir) AS userdb_home, '5000' AS userdb_uid, '5000' AS userdb_gid, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
+```
+
+<p>
+  Then, make sure you have configured "userdb prefetch" correctly. In your
+  <span class="brand">Dovecot</span> configuration, look for:
+</p>
+
+```{"lang":"config","linenos":false}
+# "prefetch" user database means that the passdb already provided the
+# needed information and there's no need to do a separate userdb lookup.
+# <doc/wiki/UserDatabase.Prefetch.txt>
+userdb {
+  driver = prefetch
+}
+```
+
+<p>
+  Finally, in order to have our script run on pop3 and imap login, we need to
+  adapt both <code>service imap</code> and <code>service pop3</code>. Here is
+  the diff of my configuration but of course YMMV:
+</p>
+
+```{"lang":"diff"}
+--- usr/local/etc/dovecot/conf.d/10-master.conf 2014-10-27 22:09:44.000000000 +0100
++++ /usr/local/etc/dovecot/conf.d/10-master.conf        2017-05-24 19:40:19.000353000 +0200
+@@ -67,6 +67,8 @@
+ }
+
+ service imap {
++  # see https://wiki2.dovecot.org/HowTo/ConvertPasswordSchemes
++  executable = imap imap-postlogin
+   # Most of the memory goes to mmap()ing files. You may need to increase this
+   # limit if you have huge mailboxes.
+   #vsz_limit = $default_vsz_limit
+@@ -76,6 +78,8 @@
+ }
+
+ service pop3 {
++  # see https://wiki2.dovecot.org/HowTo/ConvertPasswordSchemes
++  executable = pop3 pop3-postlogin
+   # Max. number of POP3 processes (connections)
+   #process_limit = 1024
+ }
+@@ -131,3 +135,19 @@
+     #group =
+   }
+ }
++
++# see https://wiki2.dovecot.org/HowTo/ConvertPasswordSchemes
++service imap-postlogin {
++  executable = script-login /usr/local/etc/dovecot/postlogin-updatepw.php
++  user = $default_internal_user
++  unix_listener imap-postlogin {
++  }
++}
++
++# see https://wiki2.dovecot.org/HowTo/ConvertPasswordSchemes
++service pop3-postlogin {
++  executable = script-login /usr/local/etc/dovecot/postlogin-updatepw.php
++  user = $default_internal_user
++  unix_listener pop3-postlogin {
++  }
++}
+```
+<p class="codeblock-comment alert alert-info">
+  Remember the configured script path on line 28 and 36, we'll use it right
+  after.
+</p>
+
+
+<h3>password scheme update script</h3>
+<p>
+    Now we'll write the post-login script that will update the mailbox password
+    to the new scheme. I've chosen to write my own for several reasons I will
+    outline later.
+</p>
+
+<p>
+  Let's start by creating the file directly with the right permissions. It is
+  important because the script will contain the credentials to connect to our
+  mailbox database.
+</p>
+
+```{"linenos":false}
+# /usr/bin/install -m 750 -g dovecot -o root /dev/null /usr/local/etc/dovecot/postlogin-updatepw.php
+```
+
+<p>
+  I've set the group to <code>dovecot</code> here because it match my
+  configured <code>$default_internal_user</code> but adapt if needed. If the
+  permissions mismatch, you'll get some "Permission denied" messages in your
+  maillog looking like this:
+</p>
+
+```{"linenos":false}
+blablabla dovecot: imap-postlogin: Error: script-login(blowfish@kaworu.ch): Fatal: execvp(/usr/local/etc/dovecot/updatepw.php) failed: Permission denied
+blablabla dovecot: imap(blowfish@kaworu.ch): Post-login script denied access to user blowfish@kaworu.ch
+blablabla dovecot: imap-postlogin: Fatal: master: service(imap-postlogin): child 42 returned error 84 (exec() failed)
+```
+
+<p>
+  The real issue though is that the <em>login will fail</em>, so take extra
+  care.
+</p>
+
+
+<p>
+  Here is the full script. It has been written in PHP because since you have
+  <span class="brand">Postfixadmin</span> and
+  <span class="brand">Roundcube</span> installed you probably have PHP too :)
+</p>
+
+<p class="alert alert-warning">
+  <i class="glyphicon glyphicon-exclamation-sign"></i>
+  <a href="https://secure.php.net/manual/en/book.pcntl.php">
+    The pcntl shared extension for PHP
+  </a> is required to run this script. It also need PDO (and your database PDO
+  driver) but <span class="brand">Roundcube</span> uses PDO, so it should
+  be safe to assume that it is installed (and working).
+</p>
+
+<%= include_code 'strong-crypt-scheme-with-dovecot-postfixadmin-and-roundcube/postlogin-updatepw.php', title: '/usr/local/etc/dovecot/postlogin-updatepw.php', lang: 'php' %>
+<p class="codeblock-comment alert alert-info">
+  Lines 3 through 10 are meant to be adapted, most of them from the
+  <span class="brand">Roundcube</span> password plugin configuration. Also,
+  depending on your database schema, the SQL queries on lines 31 and 81 may
+  need to be changed too.
+</p>
+
+<p>
+  This script has several advantages over the example(s) you can find from the
+  <span class="brand">Dovecot</span> wiki:
+</p>
+<ul>
+  <li>
+    It uses exclusively syslog's <code>LOG_MAIL</code> for messages, so its
+    output is handily around the <span class="brand">Dovecot</span> logs. You
+    might care or not.
+  </li>
+  <li>
+    It is not limited to <span class="brand">MySQL</span> as I am using
+    <span class="brand">PostgreSQL</span>. Again, not a big deal.
+  </li>
+  <li>
+    It only compute the new password scheme when the password actualy need to
+    be updated. This is relevant as we specifically picked a number of round
+    that would be costly.
+  </li>
+  <li>
+    It uses <span class="manpage">doveadm(1)</span> in a way that doesn't leak
+    the password on the command line. <em>This is critical</em>, when you call
+    <kbd>doveadm pw -p secret</kbd> <code>secret</code> (the
+    plaintext password) is part of the cmdline that can be seen from other
+    processes (e.g. when running <kbd>ps a</kbd>).
+  </li>
+</ul>
+
+<h3>Testing the password migration</h3>
+
+<p>
+  Reload Dovecot's configuration:
+</p>
+
+```{"linenos":false}
+# service dovecot reload
+```
+
+<p>
+  Now when a user with a mailbox using the old password scheme login (through
+  imap for example), you should see something like this in your maillog:
+<p>
+
+```{"linenos":false}
+blablabla dovecot: imap-login: Login: user=<blowfish@kaworu.ch>, method=PLAIN, rip=2a01:4f8:120:5388::1, lip=2a01:4f8:120:5388::1, ...
+blablabla updatepw.php[666]: blowfish@kaworu.ch password successfully migrated to BLF-CRYPT.
+```
+
+<p>
+  Then if you check in the database, its password scheme should have been
+  updated to <code>BLF-CRYPT</code>. The next logins from this user should
+  generate messages like this:
+<p>
+
+```{"linenos":false}
+blablabla dovecot: imap-login: Login: user=<blowfish@kaworu.ch>, method=PLAIN, rip=2a01:4f8:120:5388::1, lip=2a01:4f8:120:5388::1, ...
+blablabla updatepw.php[667]: blowfish@kaworu.ch already use BLF-CRYPT, skipping.
+```
+
 <h2>The End.</h2>
 <p>
-    That's it! Now all you need is to convince (or force) mailbox
-    and admin users to reset their password so they use the new scheme, which may
-    well be the hardest part.
+  And voilà! Now only the <span class="brand">Postfixadmin</span> account
+  passwords needs to be updated, but it should be not too much trouble to force
+  them to update their password :)
+</p>
+<p>
+  Many thanks to <em>Aki Tuomi</em> for pointing out the
+  <span class="brand">Dovecot</span> wiki documentation about the password
+  scheme migration. It prompted me to test it and complete this article.
 </p>
