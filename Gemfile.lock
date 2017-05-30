@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    builder (3.2.2)
+    builder (3.2.3)
     chunky_png (1.3.8)
     colored (1.2)
     compass (1.0.3)
@@ -16,29 +16,29 @@ GEM
       sass (>= 3.3.0, < 3.5)
     compass-import-once (1.0.5)
       sass (>= 3.2, < 3.5)
-    concurrent-ruby (1.0.4)
-    cri (2.7.1)
+    concurrent-ruby (1.0.5)
+    cri (2.8.0)
       colored (~> 1.2)
-    ffi (1.9.14)
+    ddplugin (1.0.1)
+    ffi (1.9.18)
     hamster (3.0.0)
       concurrent-ruby (~> 1.0)
     mini_portile2 (2.1.0)
     multi_json (1.12.1)
-    nanoc (4.4.5)
-      cri (~> 2.3)
+    nanoc (4.7.10)
+      cri (~> 2.8)
+      ddplugin (~> 1.0)
       hamster (~> 3.0)
-      parallel (~> 1.9)
       ref (~> 2.0)
-    nokogiri (1.7.0)
+    nokogiri (1.7.2)
       mini_portile2 (~> 2.1.0)
-    parallel (1.10.0)
     rake (12.0.0)
     rb-fsevent (0.9.8)
-    rb-inotify (0.9.7)
+    rb-inotify (0.9.8)
       ffi (>= 0.5.0)
     ref (2.0.0)
     rouge (2.0.7)
-    sass (3.4.23)
+    sass (3.4.24)
     systemu (2.6.5)
 
 PLATFORMS
@@ -55,4 +55,4 @@ DEPENDENCIES
   systemu
 
 BUNDLED WITH
-   1.12.5
+   1.15.0
