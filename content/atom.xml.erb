@@ -2,4 +2,4 @@
 path: "/atom.xml"
 is_hidden: true
 ---
-<%= atom_feed limit: 9001 %>
+<%= atom_feed limit: 9001, content_proc: Proc.new { |article| has_excerpt?(article.compiled_content) ? excerptize(article.compiled_content) + "<a href=\"#{item_canonical_url article}\">#{@config[:excerpt_link]}</a>" : article.compiled_content } %>
