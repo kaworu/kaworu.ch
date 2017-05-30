@@ -49,8 +49,8 @@ tags: [sysadmin]
     <span class="brand">Rspamd</span> <code>X‑Spamd‑Result</code> header, so
     later we may filter from Sieve based on the email's spam "score".
 </p>
-```{"title":"conf.d/90-sieve.conf"}
-# ...
+```{"title":"conf.d/90-sieve.conf","lang":"configuration"}
+...
 # Path to a script file or a directory containing script files that need to be
 # executed before the user's script. If the path points to a directory, all
 # the Sieve scripts contained therein (with the proper .sieve extension) are
@@ -60,7 +60,7 @@ tags: [sysadmin]
 sieve_before = /usr/local/etc/dovecot/sieve/before.d
 #sieve_before2 =
 #sieve_before3 = (etc...)
-# ...
+...
 # Which Sieve language extensions are available to users. By default, all
 # supported extensions are available, except for deprecated extensions or
 # those that are still under development. Some system administrators may want
@@ -76,7 +76,7 @@ sieve_spamtest_status_type = score
 # Rspamd output looks like: X-Spamd-Result: default: False [12.00 / 15.00]
 sieve_spamtest_status_header = X-Spamd-Result: default: [[:alnum:]]+ \[(-?[[:digit:]]+\.[[:digit:]]+) / -?[[:digit:]]+\.[[:digit:]]+\]
 sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digit:]]+\.[[:digit:]]+ / (-?[[:digit:]]+\.[[:digit:]]+)\]
-# ...
+...
 ```
 <div class="codeblock-comment alert alert-info">
     <ol>
@@ -140,18 +140,8 @@ sieve_spamtest_max_header    = X-Spamd-Result: default: [[:alnum:]]+ \[-?[[:digi
 </div>
 
 <h3>a simple example</h3>
-```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
-require "fileinto";
-require "imap4flags";
 
-if header :is "X-Spam" "Yes" {
-    fileinto "Junk";
-    setflag "\\seen";
-    stop;
-}
-
-/* Other messages get filed into Inbox or to user's scripts */
-```
+<%= include_code 'dovecot-antispam-with-rspamd-part2/x-spam/no-spam.sieve', title: '/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve', lang: 'sieve' %>
 
 <p>
     Here we rely on the <code>X-Spam</code> header, which is the result of the
@@ -161,24 +151,7 @@ if header :is "X-Spam" "Yes" {
 
 <h3>a less simple example</h3>
 
-```{"title":"/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve"}
-require "spamtestplus";
-require "fileinto";
-require "relational";
-require "comparator-i;ascii-numeric";
-require "imap4flags";
-
-if spamtest :value "gt" :comparator "i;ascii-numeric" :percent "95" {
-    discard;
-    stop;
-} elsif spamtest :value "ge" :comparator "i;ascii-numeric" :percent "50" {
-    fileinto "Junk";
-    setflag "\\seen";
-    stop;
-}
-
-/* Other messages get filed into Inbox or to user's scripts */
-```
+<%= include_code 'dovecot-antispam-with-rspamd-part2/spamtest/no-spam.sieve', title: '/usr/local/etc/dovecot/sieve/before.d/no-spam.sieve', lang: 'sieve' %>
 
 <p>
     This example make full use of the <code>spamtest</code> parsing we

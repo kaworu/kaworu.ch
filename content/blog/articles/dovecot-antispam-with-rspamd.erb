@@ -101,13 +101,13 @@ tags: [sysadmin]
     Add the <strong>antispam</strong> mail plugin to the relevant part of the
     imap configuration:
 </p>
-```{"title":"conf.d/20-imap.conf"}
+```{"title":"conf.d/20-imap.conf","lang":"configuration"}
 protocol imap {
-  # ...
+  ...
   # Space separated list of plugins to load (default is global mail_plugins).
   #mail_plugins = $mail_plugins
   mail_plugins = $mail_plugins antispam
-  # ...
+  ...
 }
 ```
 <p>
@@ -117,7 +117,7 @@ protocol imap {
 <div class="clearfix">
     <div class="row">
         <div class="col-md-6">
-```{"title":"conf.d/90-plugin.conf (original version)"}
+```{"title":"conf.d/90-plugin.conf (original version)","lang":"configuration"}
 plugin {
     antispam_backend = pipe
     antispam_spam    = Junk
@@ -130,7 +130,7 @@ plugin {
 ```
         </div>
         <div class="col-md-6">
-```{"title":"conf.d/90-plugin.conf (fork version)"}
+```{"title":"conf.d/90-plugin.conf (fork version)","lang":"configuration"}
 plugin {
     antispam_backend = mailtrain
     antispam_spam    = Junk
