@@ -6,7 +6,7 @@
     <meta itemprop="url"         content="<%= @config[:base_url] %>">
 
     <% year = nil %>
-    <% for xs in sorted_articles.group_by { |item| attribute_to_time(item[:created_at]).year } %>
+    <% for xs in @articles.sort_by { |a| attribute_to_time(a[:created_at]) }.reverse.group_by { |item| attribute_to_time(item[:created_at]).year } %>
         <h2 class="year"><%= xs[0] %></h2>
         <% for article in xs[1] %>
             <article class="page-header" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
