@@ -26,14 +26,14 @@ preprocess do
       article_tags = article[:tags] || Array.new
       article_tags.each { |tag| (injected[tag] ||= Array.new) << article }
       injected
-    end.each do |tag, articles|
+    end.each do |tag, tagged|
       content = "<%= render '/_blog_archives.erb', articles: @item[:article_ids].map { |id| @items[id] } %>"
       attributes = {
         navbar: 'Archives',
         title: "Tag: #{tag}",
         kind: 'tag-archive',
         tag: tag,
-        article_ids: articles.map(&:identifier)
+        article_ids: tagged.map(&:identifier)
       }
       identifier = "/blog/tags/#{tag}.erb" # FIXME: slugize ?
       @items.create(content, attributes, identifier)
