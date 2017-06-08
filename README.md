@@ -2,6 +2,8 @@
 
 source for https://kaworu.ch. Built with [nanoc](https://nanoc.ws/).
 
+[![Screenshot](https://raw.githubusercontent.com/kAworu/kaworu.ch/master/screenshot.png)](https://kaworu.ch/about)
+
 LICENSE
 -------
 Code you can find in the content/static/code directory or directly in the
