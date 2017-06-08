@@ -1,4 +1,7 @@
+dist: trusty
 language: ruby
 rvm:
     - "2.3"
     - "2.4"
+install: # XXX: nanoc fail to find cri
+    - bundle add cri
