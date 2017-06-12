@@ -467,13 +467,15 @@ blablabla dovecot: imap-postlogin: Fatal: master: service(imap-postlogin): child
   be safe to assume that it is installed (and working).
 </p>
 
-<%= include_code 'strong-crypt-scheme-with-dovecot-postfixadmin-and-roundcube/postlogin-updatepw.php', title: '/usr/local/etc/dovecot/postlogin-updatepw.php', lang: 'php' %>
-<p class="codeblock-comment alert alert-info">
-  Lines 3 through 10 are meant to be adapted, most of them from the
-  <span class="brand">Roundcube</span> password plugin configuration. Also,
-  depending on your database schema, the SQL queries on lines 31 and 81 may
-  need to be changed too.
-</p>
+<div id="postlogin-updatepw-code">
+  <%= include_code 'strong-crypt-scheme-with-dovecot-postfixadmin-and-roundcube/postlogin-updatepw.php', title: '/usr/local/etc/dovecot/postlogin-updatepw.php', lang: 'php' %>
+  <p class="codeblock-comment alert alert-info">
+    Lines 3 through 10 are meant to be adapted, most of them from the
+    <span class="brand">Roundcube</span> password plugin configuration. Also,
+    depending on your database schema, the SQL queries on lines 31 and 81 may
+    need to be changed too.
+  </p>
+</div>
 
 <p>
   This script has several advantages over the example(s) you can find from the
