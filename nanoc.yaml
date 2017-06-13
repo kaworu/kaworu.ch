@@ -11,7 +11,7 @@ text_extensions: [ 'adoc', 'asciidoc', 'atom', 'coffee', 'css', 'erb', 'haml', '
 # The path to the directory where all generated files will be written to. This
 # can be an absolute path starting with a slash, but it can also be path
 # relative to the site directory.
-output_dir: output/next
+output_dir: output/prod
 
 # A list of index filenames, i.e. names of files that will be served by a web
 # server when a directory is requested. Usually, index files are named
@@ -91,7 +91,7 @@ checks:
 
 # see https://nanoc.ws/doc/deploying/
 deploy:
-    production:
+    default:
         # To use rsync as the deployment method, set kind to rsync in the
         # deployment configuration, and set dst to the destination, in the
         # format used by rsync.
@@ -105,7 +105,7 @@ deploy:
         options: [ '-aP', '--delete-after' ]
 
 # our stuff.
-base_url: https://next.kaworu.ch
+base_url: https://kaworu.ch
 
 title: There is no spoon.
 subtitle: ENOSPOON
@@ -137,6 +137,6 @@ subscribe_rss: true
 
 # see https://nanoc.ws/doc/sites/#environments
 environments:
-  production:
-    base_url: https://kaworu.ch
-    output_dir: output/production
+  dev:
+    base_url: https://next.kaworu.ch
+    output_dir: output/dev
