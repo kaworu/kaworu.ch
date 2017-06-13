@@ -11,7 +11,7 @@ text_extensions: [ 'adoc', 'asciidoc', 'atom', 'coffee', 'css', 'erb', 'haml', '
 # The path to the directory where all generated files will be written to. This
 # can be an absolute path starting with a slash, but it can also be path
 # relative to the site directory.
-output_dir: output
+output_dir: output/next
 
 # A list of index filenames, i.e. names of files that will be served by a web
 # server when a directory is requested. Usually, index files are named
@@ -91,7 +91,7 @@ checks:
 
 # see https://nanoc.ws/doc/deploying/
 deploy:
-    default:
+    production:
         # To use rsync as the deployment method, set kind to rsync in the
         # deployment configuration, and set dst to the destination, in the
         # format used by rsync.
@@ -105,7 +105,7 @@ deploy:
         options: [ '-aP', '--delete-after' ]
 
 # our stuff.
-base_url: https://kaworu.ch
+base_url: https://next.kaworu.ch
 
 title: There is no spoon.
 subtitle: ENOSPOON
@@ -113,7 +113,7 @@ description: kAworu's slice of web.
 
 # author
 author_name: kAworu
-author_uri: https://kaworu.ch/about
+author_uri: /about
 
 # You can customize the format as described at
 # http://www.ruby-doc.org/core-1.9.2/Time.html#method-i-strftime
@@ -134,3 +134,9 @@ github_user: kAworu
 twitter_account: enospoon
 # RSS
 subscribe_rss: true
+
+# see https://nanoc.ws/doc/sites/#environments
+environments:
+  production:
+    base_url: https://kaworu.ch
+    output_dir: output/production
