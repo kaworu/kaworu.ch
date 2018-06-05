@@ -16,15 +16,8 @@
         <link rel="license"    type="text/html"  href="https://creativecommons.org/licenses/by/4.0/">
         <link rel="alternate"  type="application/atom+xml" href="<%= @items['/atom.*'].path %>" title="<%= @config[:title] %>">
 
-        <link rel="stylesheet" type="text/css" href="<%= static_path '/assets/bootstrap/css/bootstrap.min.css' %>">
-        <link rel="stylesheet" type="text/css" href="<%= static_path '/assets/fancyBox-2.1.5/source/jquery.fancybox.css' %>">
-        <link rel="stylesheet" type="text/css" href="<%= @items['/style/screen.*'].path %>" media="screen">
-
         <!-- load jQuery here, so we can jQuery(document).ready(...) from inline <script> -->
         <script src="<%= static_path '/assets/jquery/jquery-3.1.1.min.js' %>"></script>
-
-        <%= render('/_disqus.erb', short_name: @config[:disqus_short_name], id: item_canonical_url(@item)) if @config[:disqus_short_name] and @item[:comments] %>
-        <%= render '/_fancy_box.erb' %>
     </head>
 
     <body>
@@ -124,8 +117,13 @@
             </div>
         </footer>
 
-        <!-- at last, Javascript stuff -->
-        <script src="<%= static_path '/assets/bootstrap/js/bootstrap.min.js' %>"></script>
-        <script src="<%= static_path '/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js' %>"></script>
+        <!-- at last, CSS and Javascript stuff -->
+        <link rel="stylesheet" type="text/css" href="<%= static_path '/assets/bootstrap/css/bootstrap.min.css' %>">
+        <link rel="stylesheet" type="text/css" href="<%= static_path '/assets/fancyBox-2.1.5/source/jquery.fancybox.css' %>">
+        <link rel="stylesheet" type="text/css" href="<%= @items['/style/screen.*'].path %>" media="screen">
+        <script async src="<%= static_path '/assets/bootstrap/js/bootstrap.min.js' %>"></script>
+        <script async src="<%= static_path '/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js' %>"></script>
+        <%= render('/_disqus.erb', short_name: @config[:disqus_short_name], id: item_canonical_url(@item)) if @config[:disqus_short_name] and @item[:comments] %>
+        <%= render '/_fancy_box.erb' %>
     </body>
 </html>
