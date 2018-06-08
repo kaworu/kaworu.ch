@@ -1,6 +1,4 @@
-<!--
 [![Build Status](https://travis-ci.org/kAworu/kaworu.ch.svg?branch=master)](https://travis-ci.org/kAworu/kaworu.ch)
--->
 
 source for https://kaworu.ch. Built with [nanoc](https://nanoc.ws/).
 
