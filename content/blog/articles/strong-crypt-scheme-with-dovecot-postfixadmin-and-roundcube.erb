@@ -337,7 +337,7 @@ SELECT password FROM mailbox ORDER BY modified DESC LIMIT 1;
 </p>
 
 ```{"lang":"sql","linenos":false}
-password_query = SELECT password, CONCAT('/home/vmail/', maildir) AS userdb_home, '5000' AS userdb_uid, '5000' AS userdb_gid, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
+password_query = SELECT password, CONCAT('/home/vmail/', maildir) AS userdb_home, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
 ```
 
 <p>
@@ -345,7 +345,7 @@ password_query = SELECT password, CONCAT('/home/vmail/', maildir) AS userdb_home
 </p>
 
 ```{"lang":"sql","linenos":false}
-password_query = SELECT password, '%w' AS userdb_plain_pass, CONCAT('/home/vmail/', maildir) AS userdb_home, '5000' AS userdb_uid, '5000' AS userdb_gid, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
+password_query = SELECT password, '%w' AS userdb_plain_pass, CONCAT('/home/vmail/', maildir) AS userdb_home, concat('*:bytes=', quota) AS userdb_quota_rule FROM mailbox WHERE username = '%u' AND domain = '%d' AND active
 ```
 
 <p>
