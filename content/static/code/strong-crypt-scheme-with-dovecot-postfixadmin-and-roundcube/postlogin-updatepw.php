@@ -32,7 +32,13 @@ try {
     $sth->execute([$username]);
     $oldpasswd = $sth->fetchColumn();
     if (!$oldpasswd) {
-        syslog(LOG_WARN, "unable to find the mailbox for $username");
+        syslog(LOG_WARNING, "unable to find the mailbox for $username");
+        goto out;
+    }
+
+    // bail out if the new password is empty.
+    if (strlen($plainpass) === 0) {
+        syslog(LOG_ERR, "empty password for $username!");
         goto out;
     }
 

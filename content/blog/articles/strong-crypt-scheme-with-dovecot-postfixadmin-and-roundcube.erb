@@ -3,7 +3,7 @@ kind: article
 navbar: Blog
 title: "Strong crypt scheme with Dovecot, Postfixadmin and Roundcube"
 created_at: 2016-04-20 19:31:37 +0200
-updated_at: 2017-09-19 12:54:58 +0200
+updated_at: 2019-08-28 21:11:38 +0200
 comments: true
 tags: [sysadmin]
 ---
@@ -464,7 +464,11 @@ blablabla dovecot: imap-postlogin: Fatal: master: service(imap-postlogin): child
     The pcntl shared extension for PHP
   </a> is required to run this script. It also need PDO (and your database PDO
   driver) but <span class="brand">Roundcube</span> uses PDO, so it should
-  be safe to assume that it is installed (and working).
+  be safe to assume that it is installed (and working). If
+  <span class="brand">Dovecot</span> runs out of memory while calling the
+  postlogin script (fails to load libraries) try tweaking
+  <code>default_vsz_limit</code> in the <span class="brand">Dovecot</span>
+  configuration.
 </p>
 
 <div id="postlogin-updatepw-code">
