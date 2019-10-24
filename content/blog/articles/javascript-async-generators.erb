@@ -1,0 +1,150 @@
+---
+kind: article
+navbar: Blog
+title: "JavaScript async generators"
+created_at: 2019-10-24 22:38:33 +0200
+comments: true
+tags: [programming, JavaScript]
+---
+
+<div class="clearfix">
+    <img class="left" src="<%= static_url '/images/js-logo.png' %>" alt="JavaScript logo">
+    Did you know that you can combine
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await">
+      await
+    </a>
+    with
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator">
+      generators
+    </a>
+    in a JavaScript for loop? The
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of">
+      for await … of
+    </a> construction is very handy in this ES6-Promise-everywhere-JavaScript
+    world. In this post, we'll go through a simple example consuming data from
+    a paginated API like GitHub.
+</div>
+
+<!-- more -->
+
+<div>
+    <h1>Coding</h1>
+    <p>
+        Say you want to consume data from a JSON REST API. As soon as there is
+        more than a couple of objects to retrieve, the API will probably have
+        some pagination mechanism. The thing is you want to abstract this at
+        the fetcher level, processing objects one by one.
+    </p>
+    <p>
+      So, let's start with the processing loop. Basically, we wish to write it
+      like this:
+    </p>
+
+```{"lang":"javascript","linenos":false}
+  // generator search function
+  function *search() {
+    const results = request();
+    yield* results;
+  }
+
+  // loop through the results
+  for (const result of search()) {
+    // do something with result.
+  }
+```
+
+    <p>
+      But <code>request()</code> is actually <code>async</code>, that's where
+      the <em>for await … of</em> magic happen:
+    </p>
+
+```{"lang":"javascript","linenos":false}
+
+  // async generator function
+  async function *search() {
+    const results = await request();
+    yield* results;
+  }
+
+  // loop through the results
+  for await (const result of search()) {
+    // do something with result.
+  }
+```
+
+    <p>
+      Here is a working example using GitHub's API. It is a bit more complex
+      because the <code>search()</code> function has a <code>while</code>
+      looping through the result pages.
+    </p>
+
+    <%= include_code 'js-async-generators/index.js', title: 'index.js', lang: 'javascript' %>
+
+    <h1>Running</h1>
+    <p>
+      I made a simple project to run the code above:
+    </p>
+
+```{"linenos":false}
+git clone https://github.com/kAworu/js-async-generator.git
+cd js-async-generator.git
+npm install
+```
+
+    <p>
+      Now let's run the script with <code>DEBUG=* node index.js</code> so that
+      we can see when <code>search()</code> actually perform the network
+      requests:
+    </p>
+
+```
+  search requesting https://api.github.com/search/code?q=OpenBSD%2Buser%3AkAworu +0ms
+  search yielding 30 items +749ms
+→ 15.32: openbsd-daily-on-linux.erb (in kAworu/kaworu.ch)
+→ 13.97: daily (in kAworu/kaworu.ch)
+→ 13.42: weekly (in kAworu/kaworu.ch)
+→ 13.00: programming.erb (in kAworu/kaworu.ch)
+→ 12.22: explicit_bzero.c (in kAworu/cryptopals)
+→ 12.22: freezero.c (in kAworu/cryptopals)
+→ 12.22: freezero.h (in kAworu/cryptopals)
+→ 12.22: reallocarray.h (in kAworu/cryptopals)
+→ 12.15: explicit_bzero.h (in kAworu/cryptopals)
+→ 12.15: strlcat.h (in kAworu/cryptopals)
+→ 12.15: strlcpy.h (in kAworu/cryptopals)
+→ 12.15: timingsafe_bcmp.h (in kAworu/cryptopals)
+→ 12.15: recallocarray.h (in kAworu/cryptopals)
+→ 12.08: strlcat.h (in kAworu/tagutil)
+→ 12.08: strlcpy.h (in kAworu/tagutil)
+→ 11.48: monthly (in kAworu/kaworu.ch)
+→ 11.43: timingsafe_bcmp.c (in kAworu/cryptopals)
+→ 10.94: strlcat.c (in kAworu/cryptopals)
+→ 10.94: strlcpy.c (in kAworu/cryptopals)
+→ 10.94: reallocarray.c (in kAworu/cryptopals)
+→ 10.83: strlcat.c (in kAworu/tagutil)
+→ 10.83: strlcpy.c (in kAworu/tagutil)
+→ 10.64: index.js (in kAworu/js-async-generator)
+→ 10.60: t_toolkit.c (in kAworu/tagutil)
+→ 10.56: recallocarray.c (in kAworu/cryptopals)
+→ 10.44: strdup.c (in kAworu/tagutil)
+→ 8.99: .zshrc (in kAworu/dotfiles)
+→ 7.97: vimrc (in kAworu/dotfiles)
+→ 7.93: perl.h (in kAworu/perl1)
+→ 7.19: kaworu (in kAworu/dotfiles)
+  search requesting https://api.github.com/search/code?q=OpenBSD%2Buser%3AkAworu&page=2 +4ms
+  search yielding 2 items +427ms
+→ 6.35: break_mac.c (in kAworu/cryptopals)
+→ 5.23: srp.c (in kAworu/cryptopals)
+```
+
+    <p>
+      As we can see, we awaited on two network requests: the first one got 30
+      entries and the second one got 2. The nice thing is that our processing
+      code (i.e. the <code>main()</code> function) is completely unaware of
+      this implementation detail.
+    </p>
+
+    <p>
+      That's it! I'll be happy to hear from you if this trick is useful, or
+      more <em>for await … of</em> examples. Cheers.
+    </p>
+</div>
