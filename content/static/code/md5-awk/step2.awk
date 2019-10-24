@@ -22,7 +22,7 @@ END {
 }
 
 # our md5 implementation
-function md5(input,     nbytes, chars, i, bytes, hi, lo, words, nwords, state,
+function md5(input,    nbytes, chars, i, bytes, hi, lo, words, nwords, state,
 	     a, b, c, d, j, x, digest, ret) {
 	# convert the input into an array of bytes using ord() on each
 	# character.

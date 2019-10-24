@@ -1,5 +1,5 @@
---- step1.awk	2017-02-20 18:24:03.945458000 +0100
-+++ step2.awk	2017-02-20 18:24:03.945462000 +0100
+--- step1.awk	2017-06-21 09:43:06.590286000 +0200
++++ step2.awk	2019-10-24 09:35:57.779452000 +0200
 @@ -1,5 +1,6 @@
  BEGIN {
  	_ord_init();
@@ -12,12 +12,12 @@
  
  # our md5 implementation
 -function md5(input,    nbytes, chars, i, bytes, hi, lo, words, nwords) {
-+function md5(input,     nbytes, chars, i, bytes, hi, lo, words, nwords, state,
++function md5(input,    nbytes, chars, i, bytes, hi, lo, words, nwords, state,
 +	     a, b, c, d, j, x, digest, ret) {
  	# convert the input into an array of bytes using ord() on each
  	# character.
  	nbytes = split(input, chars, "");
-@@ -54,13 +56,165 @@
+@@ -54,15 +56,167 @@
  	hi = rshift(nbytes * 8, 32);
  	lo = (nbytes * 8) - lshift(hi, 32);
  	words[nwords++] = lo;
@@ -130,8 +130,8 @@
 +	for (i = 0; i < 16; i++)
 +		ret = sprintf("%s%02x", ret, digest[i]);
 +	return ret;
-+}
-+
+ }
+ 
 +function F(x, y, z) {
 +	return or(and(x, y), and(not(x), z));
 +}
@@ -186,13 +186,16 @@
 +
 +function not(x) {
 +	return mod32bits(compl(x));
- }
- 
++}
++
  # from https://www.gnu.org/software/gawk/manual/html_node/Ordinal-Functions.html
-@@ -75,3 +229,11 @@
+ function _ord_init(    i)
+ {
+@@ -74,4 +228,12 @@
+ {
  	# only first character is of interest
  	return _ord_[substr(s, 1, 1)];
- }
++}
 +
 +function _md5_init() {
 +	# MD5 shift constants setup.
@@ -200,4 +203,4 @@
 +	S21 =  5; S22 =  9; S23 = 14; S24 = 20;
 +	S31 =  4; S32 = 11; S33 = 16; S34 = 23;
 +	S41 =  6; S42 = 10; S43 = 15; S44 = 21;
-+}
+ }

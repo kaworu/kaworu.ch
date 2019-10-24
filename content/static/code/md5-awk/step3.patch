@@ -1,14 +1,5 @@
---- step2.awk	2017-02-20 18:24:03.945462000 +0100
-+++ step3.awk	2017-02-20 21:30:13.502377000 +0100
-@@ -22,7 +22,7 @@
- }
- 
- # our md5 implementation
--function md5(input,     nbytes, chars, i, bytes, hi, lo, words, nwords, state,
-+function md5(input,    nbytes, chars, i, bytes, hi, lo, words, nwords, state,
- 	     a, b, c, d, j, x, digest, ret) {
- 	# convert the input into an array of bytes using ord() on each
- 	# character.
+--- step2.awk	2019-10-24 09:35:57.779452000 +0200
++++ step3.awk	2017-06-21 09:43:06.599989000 +0200
 @@ -33,19 +33,19 @@
  	# convert the array of bytes into an array of 32-bits words.
  	# NOTE: words is 0-indexed.
@@ -237,7 +228,7 @@
  }
  
  function FF(a, b, c, d, x, s, ac) {
-@@ -206,17 +206,37 @@
+@@ -206,15 +206,35 @@
  }
  
  function ROTATE_LEFT(x, n) {
@@ -253,8 +244,8 @@
 -function not(x) {
 +function bw_not(x) {
  	return mod32bits(compl(x));
- }
- 
++}
++
 +function bw_lshift(x, n) {
 +	return lshift(x, n);
 +}
@@ -273,8 +264,6 @@
 +
 +function bw_xor(x, y) {
 +	return xor(x, y);
-+}
-+
+ }
+ 
  # from https://www.gnu.org/software/gawk/manual/html_node/Ordinal-Functions.html
- function _ord_init(    i)
- {
