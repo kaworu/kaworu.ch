@@ -126,8 +126,6 @@ excerpt_separator: "<!-- more -->"
 
 # search
 simple_search: https://duckduckgo.com
-# Disqus Comments
-disqus_short_name: forkwhilefork
 # GitHub
 github_user: kAworu
 # Twitter

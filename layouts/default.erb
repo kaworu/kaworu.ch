@@ -123,7 +123,6 @@
         <link rel="stylesheet" type="text/css" href="<%= @items['/style/screen.*'].path %>" media="screen">
         <script async src="<%= static_path '/assets/bootstrap/js/bootstrap.min.js' %>"></script>
         <script async src="<%= static_path '/assets/fancyBox-2.1.5/source/jquery.fancybox.pack.js' %>"></script>
-        <%= render('/_disqus.erb', short_name: @config[:disqus_short_name], id: item_canonical_url(@item)) if @config[:disqus_short_name] and @item[:comments] %>
         <%= render '/_fancy_box.erb' %>
     </body>
 </html>
